@@ -1,0 +1,34 @@
+{
+  "name": "tatc-web-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n BACKEND,FRONTEND -c cyan,magenta \"npm --prefix backend run dev\" \"vite --host 0.0.0.0\"",
+    "start": "npm run dev",
+    "frontend": "vite --host 0.0.0.0",
+    "backend": "npm --prefix backend run dev",
+    "build": "vite build",
+    "build:all": "vite build && npm --prefix backend run build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "install:all": "npm install && npm --prefix backend install",
+    "prisma:generate": "npm --prefix backend run prisma:generate",
+    "prisma:push": "npm --prefix backend run prisma:push",
+    "prisma:migrate": "npm --prefix backend run prisma:migrate",
+    "prisma:studio": "npm --prefix backend run prisma:studio"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^9.2.1",
+    "oxlint": "^1.75.0",
+    "vite": "^8.2.0"
+  }
+}

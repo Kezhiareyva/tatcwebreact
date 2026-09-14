@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: tatc_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: ${PMA_HOST}
+      PMA_PORT: ${PMA_PORT1}
+      UPLOAD_LIMIT: ${PMA_UPLOAD_LIMIT}
+    ports:
+      - "${PMA_BIND_IP}:${PMA_PORT2}:${PMA_PORT3}"
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: tatc_mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${DB_BIND_IP}:${DB_PORT}:${DB_PORT}"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tatc_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=mysql://${DB_USER}:${DB_PASS}@mysql:${DB_PORT}/${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASS}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - PORT=${BACKEND_PORT}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+    ports:
+      - "${BACKEND_BIND_IP}:${BACKEND_PORT}:${BACKEND_PORT}"
+    volumes:
+      - tatc_uploads:/app/public/uploads
+      - tatc_documents:/app/public/documents
+      - tatc_payments:/app/public/payments
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tatc_frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_BIND_IP}:${FRONTEND_PORT1}:${FRONTEND_PORT2}"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  tatc_uploads:
+  tatc_documents:
+  tatc_payments:

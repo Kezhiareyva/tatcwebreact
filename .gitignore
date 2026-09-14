@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.next/
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.code-workspace
+
+# Logs
+logs/
+*.log
+
+# Testing & Coverage
+coverage/
+*.lcov
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Docker
+*.dockerfile.swp
+.dockerignore.swp
+
+# Temporary files
+*.tmp
+*.temp
+
+# Prisma & Database
+.prisma/
+mysql_data/
+postgres_data/

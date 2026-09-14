@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Jangan arahkan ulang jika yang diakses adalah file/folder nyata (seperti folder /api)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Arahkan semua rute lainnya (seperti /login atau /superadmin) ke index.html untuk ditangani React Router
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
