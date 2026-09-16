@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const port = Number(env.VITE_PORT || 5173);
-  const host = env.VITE_HOST || '0.0.0.0';
-  const backendTarget = env.VITE_BACKEND_TARGET || `http://${env.BACKEND_HOST || '127.0.0.1'}:${env.BACKEND_PORT || 3001}`;
+  const port = Number(env.VITE_PORT);
+  const host = env.VITE_HOST;
+  const backendTarget = env.VITE_BACKEND_TARGET;
 
   return {
     plugins: [react()],
@@ -13,10 +13,7 @@ export default defineConfig(({ mode }) => {
       port,
       host,
       proxy: {
-        '/api': { target: backendTarget, changeOrigin: true },
-        '/uploads': { target: backendTarget, changeOrigin: true },
-        '/documents': { target: backendTarget, changeOrigin: true },
-        '/payments': { target: backendTarget, changeOrigin: true }
+        '/api': { target: backendTarget, changeOrigin: true }
       }
     },
     build: {

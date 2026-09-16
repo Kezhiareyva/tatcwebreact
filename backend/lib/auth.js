@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { cookies } from 'next/headers';
 
 const COOKIE = 'tatc_session';
-const secret = () => process.env.SESSION_SECRET || 'development-only-change-this-secret';
+const secret = () => process.env.SESSION_SECRET;
 
 function b64(value) {
   return Buffer.from(value).toString('base64url');
