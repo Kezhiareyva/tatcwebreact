@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { apiFetch } from '../../../lib/api';
 
 const ManageUsers = () => {
   const { user } = useAuth(); // The currently logged-in admin/superadmin
@@ -13,7 +14,7 @@ const ManageUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`/api/users?requester_role=${user?.role}`);
+      const res = await apiFetch(`/api/users?requester_role=${user?.role}`);
       const json = await res.json();
       if (json.success) setUsers(json.data);
     } catch (e) {
@@ -29,7 +30,7 @@ const ManageUsers = () => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-    
+
     // For Admin, ensure they don't submit ADMIN/SUPERADMIN roles even if they manipulate DOM
     if (!isSuperAdmin && (formData.role === 'ADMIN' || formData.role === 'SUPERADMIN')) {
       setMessage('Admin tidak dapat membuat atau mengubah role menjadi Admin/Superadmin.');
@@ -38,18 +39,18 @@ const ManageUsers = () => {
     }
 
     const method = formData.id ? 'PUT' : 'POST';
-    const url = formData.id 
+    const url = formData.id
       ? `/api/users?id=${formData.id}&requester_role=${user?.role}`
       : `/api/users?requester_role=${user?.role}`;
 
     try {
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       const json = await res.json();
-      
+
       if (json.success) {
         setMessage('Berhasil menyimpan pengguna!');
         setShowForm(false);
@@ -68,7 +69,7 @@ const ManageUsers = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus pengguna ini secara permanen? Catatan: Profil akademik di tabel Participants/Instructors tidak akan terhapus.')) return;
     try {
-      const res = await fetch(`/api/users?id=${id}&requester_role=${user?.role}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/users?id=${id}&requester_role=${user?.role}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) fetchUsers();
       else alert(json.message);
@@ -103,15 +104,15 @@ const ManageUsers = () => {
           <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>Email Address</label>
-              <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+              <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>Password {formData.id && <span style={{color:'var(--text-muted)', fontWeight:'normal'}}>(Kosongkan jika tidak ingin reset)</span>}</label>
-              <input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required={!formData.id} placeholder={formData.id ? "New password..." : "Password..."} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>Password {formData.id && <span style={{ color: 'var(--text-muted)', fontWeight: 'normal' }}>(Kosongkan jika tidak ingin reset)</span>}</label>
+              <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required={!formData.id} placeholder={formData.id ? "New password..." : "Password..."} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>Role (Hak Akses)</label>
-              <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+              <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                 <option value="PESERTA">PESERTA</option>
                 <option value="INSTRUKTUR">INSTRUKTUR</option>
                 {isSuperAdmin && <option value="ADMIN">ADMIN</option>}
@@ -119,13 +120,13 @@ const ManageUsers = () => {
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>Account Status</label>
-              <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+              <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                 <option value="ACTIVE">ACTIVE</option>
                 <option value="SUSPENDED">SUSPENDED</option>
                 <option value="INACTIVE">INACTIVE</option>
               </select>
             </div>
-            
+
             <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
               <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '10px 24px' }}>{loading ? 'Saving...' : (formData.id ? 'Save Changes' : 'Create User')}</button>
             </div>

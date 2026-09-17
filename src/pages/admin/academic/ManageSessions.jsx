@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../../lib/api';
 
 const ManageSessions = () => {
   const [sessions, setSessions] = useState([]);
@@ -14,7 +15,7 @@ const ManageSessions = () => {
   const fetchSessions = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/sessions');
+      const res = await apiFetch('/api/sessions');
       const json = await res.json();
       if (json.success) setSessions(json.data);
     } catch (e) {
@@ -27,10 +28,10 @@ const ManageSessions = () => {
   const fetchDependencies = async () => {
     try {
       const [resB, resM, resR, resI] = await Promise.all([
-        fetch('/api/batches'),
-        fetch('/api/modules'),
-        fetch('/api/rooms'),
-        fetch('/api/instructors')
+        apiFetch('/api/batches'),
+        apiFetch('/api/modules'),
+        apiFetch('/api/rooms'),
+        apiFetch('/api/instructors')
       ]);
       const [jsonB, jsonM, jsonR, jsonI] = await Promise.all([resB.json(), resM.json(), resR.json(), resI.json()]);
       if (jsonB.success) setBatches(jsonB.data);
@@ -50,9 +51,9 @@ const ManageSessions = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     setMessage('');
-    
+
     try {
-      const res = await fetch('/api/sessions', {
+      const res = await apiFetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -72,7 +73,7 @@ const ManageSessions = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin membatalkan sesi ini?')) return;
     try {
-      const res = await fetch(`/api/sessions?id=${id}`, {
+      const res = await apiFetch(`/api/sessions?id=${id}`, {
         method: 'DELETE'
       });
       const json = await res.json();
@@ -151,56 +152,56 @@ const ManageSessions = () => {
           <div style={{ background: 'var(--surface-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{formData.id ? 'Edit Session' : 'Add Session'}</h2>
             {message && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{message}</div>}
-            
+
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Title</label>
-                <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. Day 1: Introduction" />
+                <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. Day 1: Introduction" />
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Batch</label>
-                  <select value={formData.batch_id} onChange={e => setFormData({...formData, batch_id: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                  <select value={formData.batch_id} onChange={e => setFormData({ ...formData, batch_id: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                     <option value="" disabled>Select Batch</option>
                     {batches.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Module (Optional)</label>
-                  <select value={formData.module_id || ''} onChange={e => setFormData({...formData, module_id: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                  <select value={formData.module_id || ''} onChange={e => setFormData({ ...formData, module_id: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                     <option value="">No Module</option>
                     {modules.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
               </div>
-              
+
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Room (Optional)</label>
-                  <select value={formData.room_id || ''} onChange={e => setFormData({...formData, room_id: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                  <select value={formData.room_id || ''} onChange={e => setFormData({ ...formData, room_id: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                     <option value="">No Room</option>
                     {rooms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Date</label>
-                  <input type="date" value={formData.session_date} onChange={e => setFormData({...formData, session_date: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="date" value={formData.session_date} onChange={e => setFormData({ ...formData, session_date: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Start Time</label>
-                  <input type="time" value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="time" value={formData.start_time} onChange={e => setFormData({ ...formData, start_time: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>End Time</label>
-                  <input type="time" value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="time" value={formData.end_time} onChange={e => setFormData({ ...formData, end_time: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Status</label>
-                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                  <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                     <option value="SCHEDULED">SCHEDULED</option>
                     <option value="COMPLETED">COMPLETED</option>
                     <option value="CANCELLED">CANCELLED</option>
@@ -213,13 +214,13 @@ const ManageSessions = () => {
                 <select multiple value={formData.instructors} onChange={e => {
                   const options = [...e.target.options];
                   const values = options.filter(o => o.selected).map(o => o.value);
-                  setFormData({...formData, instructors: values});
+                  setFormData({ ...formData, instructors: values });
                 }} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)', minHeight: '80px' }}>
                   {instructors.map(ins => <option key={ins.id} value={ins.id}>{ins.full_name}</option>)}
                 </select>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Hold Ctrl (Windows) or Cmd (Mac) to select multiple instructors.</div>
               </div>
-              
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-main)' }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '6px' }}>Save</button>

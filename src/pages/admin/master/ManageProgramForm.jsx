@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../../lib/api';
 
 const ManageProgramForm = () => {
   const { id } = useParams();
@@ -12,7 +13,7 @@ const ManageProgramForm = () => {
   useEffect(() => {
     const fetchFields = async () => {
       try {
-        const res = await fetch(`/api/admin/programs/${id}/fields`);
+        const res = await apiFetch(`/api/admin/programs/${id}/fields`);
         const json = await res.json();
         if (json.success) {
           setFields(json.data);
@@ -65,7 +66,7 @@ const ManageProgramForm = () => {
     setSaving(true);
     setMessage('');
     try {
-      const res = await fetch(`/api/admin/programs/${id}/fields`, {
+      const res = await apiFetch(`/api/admin/programs/${id}/fields`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields })

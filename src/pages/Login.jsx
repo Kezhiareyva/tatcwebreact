@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -31,7 +32,7 @@ function Login() {
     setResending(true);
     setResendMessage('');
     try {
-      const response = await fetch('/api/auth/resend-verification', {
+      const response = await apiFetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() })
@@ -77,8 +78,8 @@ function Login() {
             <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid #ef4444', color: '#ef4444', padding: '12px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: '500', textAlign: 'left' }}>
               {error}
               {error === 'Silakan verifikasi email terlebih dahulu.' && (
-                <button 
-                  onClick={handleResend} 
+                <button
+                  onClick={handleResend}
                   disabled={resending}
                   style={{ display: 'block', marginTop: '10px', padding: '6px 12px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600' }}
                 >
@@ -87,7 +88,7 @@ function Login() {
               )}
             </div>
           )}
-          
+
           {resendMessage && (
             <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', color: '#15803d', padding: '12px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: '500', textAlign: 'left', wordBreak: 'break-all' }}>
               {resendMessage}

@@ -49,7 +49,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASS}
       - SESSION_SECRET=${SESSION_SECRET}
-      - PORT=${BACKEND_PORT}
+      - PORT=${BACKEND_PORT2}
       - FRONTEND_URL=${FRONTEND_URL}
       - CORS_ORIGIN=${CORS_ORIGIN}
       - SMTP_HOST=${SMTP_HOST}
@@ -58,7 +58,7 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
     ports:
-      - "${BACKEND_BIND_IP}:${BACKEND_PORT}:${BACKEND_PORT}"
+      - "${BACKEND_BIND_IP}:${BACKEND_PORT1}:${BACKEND_PORT2}"
     volumes:
       - tatc_uploads:/app/public/uploads
       - tatc_documents:/app/public/documents

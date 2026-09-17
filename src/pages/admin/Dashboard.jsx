@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../../lib/api';
 
 const StatCard = ({ label, value, hint, icon }) => (
   <div className="stat-card">
@@ -16,7 +17,7 @@ const Dashboard = () => {
   const fetchStats = async () => {
     setLoading(true); setError('');
     try {
-      const res = await fetch('/api/dashboard/stats');
+      const res = await apiFetch('/api/dashboard/stats');
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
       if (!json.success) throw new Error(json.message || 'Gagal mengambil statistik.');
@@ -47,7 +48,7 @@ const Dashboard = () => {
     <section className="dashboard-grid">
       <div className="panel activity-panel">
         <div className="panel-head"><div><h2>Recent activity</h2><p>Aktivitas terbaru yang tercatat di sistem.</p></div><span className="live-pill"><i /> Live</span></div>
-        {loading ? <div className="skeleton-list">{[1,2,3,4].map(i => <div className="skeleton-row" key={i}><span/><div><b/><em/></div></div>)}</div> : recent_activities.length === 0 ? <div className="empty-state"><span>◌</span><strong>Belum ada aktivitas</strong><p>Aktivitas baru akan muncul di sini.</p></div> : <div className="activity-list">{recent_activities.map((act, i) => <div className="activity-item" key={i}><span className="activity-dot"/><div><strong>{act.description}</strong><small>{act.time}</small></div></div>)}</div>}
+        {loading ? <div className="skeleton-list">{[1, 2, 3, 4].map(i => <div className="skeleton-row" key={i}><span /><div><b /><em /></div></div>)}</div> : recent_activities.length === 0 ? <div className="empty-state"><span>◌</span><strong>Belum ada aktivitas</strong><p>Aktivitas baru akan muncul di sini.</p></div> : <div className="activity-list">{recent_activities.map((act, i) => <div className="activity-item" key={i}><span className="activity-dot" /><div><strong>{act.description}</strong><small>{act.time}</small></div></div>)}</div>}
       </div>
       <div className="panel quick-panel">
         <div className="panel-head"><div><h2>Quick actions</h2><p>Akses cepat ke pekerjaan utama.</p></div></div>

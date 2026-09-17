@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../../lib/api';
 
 const ParticipantSchedule = () => {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ const ParticipantSchedule = () => {
     const fetchData = async () => {
       try {
         const participantId = user?.profile?.id || 0;
-        const res = await fetch(`/api/portal/student_dashboard?participant_id=${participantId}`);
+        const res = await apiFetch(`/api/portal/student_dashboard?participant_id=${participantId}`);
         const json = await res.json();
         if (json.success) {
           setSessions(json.data.upcoming_sessions || []);
@@ -58,7 +59,7 @@ const ParticipantSchedule = () => {
 
   return (
     <div style={{ padding: '2rem 1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
-      
+
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
@@ -163,7 +164,7 @@ const ParticipantSchedule = () => {
             Tidak Ada Jadwal Kelas Mendatang
           </h3>
           <p style={{ color: 'var(--text-muted)', maxWidth: '480px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: '1.5' }}>
-            {sessions.length === 0 
+            {sessions.length === 0
               ? 'Anda belum memiliki jadwal kelas aktif. Pastikan Anda telah terdaftar dan diterima pada batch pelatihan.'
               : 'Tidak ada sesi kelas yang cocok dengan filter pencarian Anda.'}
           </p>

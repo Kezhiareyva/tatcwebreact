@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../../lib/api';
 
 const InputGrades = () => {
   const [batches, setBatches] = useState([]);
@@ -15,8 +16,8 @@ const InputGrades = () => {
     const fetchDropdowns = async () => {
       try {
         const [resBatches, resExams] = await Promise.all([
-          fetch('/api/batches'),
-          fetch('/api/exams')
+          apiFetch('/api/batches'),
+          apiFetch('/api/exams')
         ]);
         const jsonB = await resBatches.json();
         const jsonE = await resExams.json();
@@ -39,7 +40,7 @@ const InputGrades = () => {
     const fetchParticipants = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/exam_results?exam_id=${selectedExam}&batch_id=${selectedBatch}`);
+        const res = await apiFetch(`/api/exam_results?exam_id=${selectedExam}&batch_id=${selectedBatch}`);
         const json = await res.json();
         if (json.success) {
           // prefill data
@@ -50,7 +51,7 @@ const InputGrades = () => {
             notes: p.notes || ''
           }));
           setParticipants(data);
-          
+
           // if there is an existing exam_date in the data, use it
           if (data.length > 0 && data[0].exam_date) {
             setExamDate(data[0].exam_date);
@@ -86,7 +87,7 @@ const InputGrades = () => {
   const handleSave = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/exam_results', {
+      const res = await apiFetch('/api/exam_results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,15 +109,15 @@ const InputGrades = () => {
       alert("Tidak ada data untuk diekspor.");
       return;
     }
-    
+
     // Find exam details
     const selectedExamData = exams.find(e => e.id === selectedExam);
     const examName = selectedExamData ? selectedExamData.name : 'Unknown Exam';
     const batchName = batches.find(b => b.id === selectedBatch)?.name || 'Unknown Batch';
-    
+
     const headers = ["NIP / Nomor Identitas", "Nama Lengkap", "Modul / Ujian", "Skor", "Status Kelulusan", "Catatan"];
     const csvRows = [headers.join(',')];
-    
+
     participants.forEach(p => {
       const row = [
         `"${p.participant_number || ''}"`,
@@ -128,7 +129,7 @@ const InputGrades = () => {
       ];
       csvRows.push(row.join(','));
     });
-    
+
     const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
