@@ -220,7 +220,7 @@ function Home() {
                 TATC adalah lembaga pelatihan aviasi bersertifikat yang didedikasikan untuk menghasilkan tenaga ahli perawatan pesawat udara yang unggul dan profesional. Sebagai institusi yang diakui secara nasional, kami memadukan standar industri penerbangan yang ketat dengan keunggulan akademik dari Telkom University.
               </p>
               <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.8' }}>
-                Fokus utama kami adalah mencetak lulusan kategori Basic Certificate C (C1, C2, dan C4) untuk Radio, Instrument, dan Electrical yang tersertifikasi langsung oleh Direktorat Jenderal Perhubungan Udara (DKPPU) melalui AMTO No. 147D-19.
+                Basic Certificate C (C1, C2, dan C4) untuk Radio, Instrument, dan Electrical yang tersertifikasi langsung oleh Direktorat Jenderal Perhubungan Udara (DKPPU) melalui AMTO No. 147D-19.
               </p>
             </div>
             <div style={{ flex: '1 1 500px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
