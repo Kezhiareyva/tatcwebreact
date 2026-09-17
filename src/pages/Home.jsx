@@ -214,7 +214,7 @@ function Home() {
                 Tentang Kami
               </div>
               <h2 style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '1.5rem', lineHeight: '1.2' }}>
-                Telkom University Aviation Training Center
+                Telkom University
               </h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '1.5rem' }}>
                 TATC adalah lembaga pelatihan aviasi bersertifikat yang didedikasikan untuk menghasilkan tenaga ahli perawatan pesawat udara yang unggul dan profesional. Sebagai institusi yang diakui secara nasional, kami memadukan standar industri penerbangan yang ketat dengan keunggulan akademik dari Telkom University.
