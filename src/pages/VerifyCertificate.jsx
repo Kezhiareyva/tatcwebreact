@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 const VerifyCertificate = () => {
   const [code, setCode] = useState('');
@@ -10,15 +11,15 @@ const VerifyCertificate = () => {
   const handleVerify = async (e) => {
     e.preventDefault();
     if (!code) return;
-    
+
     setLoading(true);
     setError('');
     setResult(null);
 
     try {
-      const res = await fetch(`/api/public/verify?code=${code}`);
+      const res = await apiFetch(`/api/public/verify?code=${code}`);
       const json = await res.json();
-      
+
       if (json.success) {
         setResult(json);
       } else {
@@ -51,9 +52,9 @@ const VerifyCertificate = () => {
         <div style={{ background: 'var(--surface-color)', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)', width: '100%', maxWidth: '500px' }}>
           <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <label style={{ fontWeight: '600', color: '#334155' }}>Verification Code</label>
-            <input 
-              type="text" 
-              value={code} 
+            <input
+              type="text"
+              value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
               placeholder="Contoh: A1B2C3D4E5"
               required
@@ -80,7 +81,7 @@ const VerifyCertificate = () => {
                   {result.message}
                 </h3>
               </div>
-              
+
               <div style={{ background: 'var(--surface-color)', padding: '1.25rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase' }}>Nama Peserta</div>

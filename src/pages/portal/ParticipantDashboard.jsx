@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../lib/api';
 
 const ParticipantDashboard = () => {
   const { user } = useAuth();
@@ -16,14 +17,14 @@ const ParticipantDashboard = () => {
   const fetchData = async () => {
     try {
       const participantId = user?.profile?.id || 0;
-      
+
       // Fetch Dashboard Data
-      const res = await fetch(`/api/portal/student_dashboard?participant_id=${participantId}`);
+      const res = await apiFetch(`/api/portal/student_dashboard?participant_id=${participantId}`);
       const json = await res.json();
       if (json.success) setData(json.data);
 
       // Fetch Registrations
-      const resReg = await fetch(`/api/portal/registrations`);
+      const resReg = await apiFetch(`/api/portal/registrations`);
       const jsonReg = await resReg.json();
       if (jsonReg.success) setRegistrations(jsonReg.data);
 
@@ -46,12 +47,12 @@ const ParticipantDashboard = () => {
     e.preventDefault();
     if (!paymentFile || !paymentReg) return;
     setUploading(true);
-    
+
     try {
       const formData = new FormData();
       formData.append('payment_proof', paymentFile);
-      
-      const res = await fetch(`/api/portal/registrations/${paymentReg}/payment`, {
+
+      const res = await apiFetch(`/api/portal/registrations/${paymentReg}/payment`, {
         method: 'POST',
         body: formData
       });
@@ -97,7 +98,7 @@ const ParticipantDashboard = () => {
   }
 
   const { batches = [], upcoming_sessions = [], open_programs = [], attendance_stats = {} } = data;
-  
+
   // Categorize batches
   const activeBatches = batches.filter(b => (b.status === 'ACTIVE' || b.enrollment_status === 'ENROLLED') && b.status !== 'COMPLETED' && b.enrollment_status !== 'COMPLETED');
   const pastBatches = batches.filter(b => b.status === 'COMPLETED' || b.enrollment_status === 'COMPLETED');
@@ -123,7 +124,7 @@ const ParticipantDashboard = () => {
 
   return (
     <div style={{ padding: '2rem 1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
-      
+
       {/* Welcome Banner */}
       <div style={{
         background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%)',

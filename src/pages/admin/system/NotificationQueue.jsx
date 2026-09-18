@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../../lib/api';
 
 const NotificationQueue = () => {
   const [notifications, setNotifications] = useState([]);
@@ -8,7 +9,7 @@ const NotificationQueue = () => {
   const fetchQueue = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/notifications');
+      const res = await apiFetch('/api/notifications');
       const json = await res.json();
       if (json.success) setNotifications(json.data);
     } catch (e) {
@@ -28,7 +29,7 @@ const NotificationQueue = () => {
   const handleRetry = async (id) => {
     setMessage('');
     try {
-      const res = await fetch('/api/notifications', {
+      const res = await apiFetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'retry', id })
@@ -45,7 +46,7 @@ const NotificationQueue = () => {
   };
 
   const getStatusBadge = (status) => {
-    switch(status) {
+    switch (status) {
       case 'PENDING': return <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', background: '#fef3c7', color: '#92400e' }}>PENDING</span>;
       case 'PROCESSING': return <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', background: '#e0f2fe', color: '#075985' }}>PROCESSING</span>;
       case 'SENT': return <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', background: '#dcfce7', color: '#166534' }}>SENT</span>;

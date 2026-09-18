@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { apiFetch } from '../../lib/api';
 
 const ManageMaterials = () => {
   const { user } = useAuth();
@@ -20,7 +21,7 @@ const ManageMaterials = () => {
     const fetchSessions = async () => {
       try {
         const instructorId = user.profile?.id || 0;
-        const res = await fetch(`/api/portal/instructor_dashboard?instructor_id=${instructorId}`);
+        const res = await apiFetch(`/api/portal/instructor_dashboard?instructor_id=${instructorId}`);
         const json = await res.json();
         if (json.success) setSessions(json.data.upcoming_sessions);
       } catch (err) {
@@ -38,7 +39,7 @@ const ManageMaterials = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/portal/materials?session_id=${selectedSessionId}&instructor_id=${user.profile.id}`);
+      const res = await apiFetch(`/api/portal/materials?session_id=${selectedSessionId}&instructor_id=${user.profile.id}`);
       const json = await res.json();
       if (json.success) {
         setMaterials(json.data);
@@ -73,7 +74,7 @@ const ManageMaterials = () => {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/portal/materials', {
+      const res = await apiFetch('/api/portal/materials', {
         method: 'POST',
         body: formData
       });
@@ -99,7 +100,7 @@ const ManageMaterials = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus materi ini?")) return;
     try {
-      const res = await fetch(`/api/portal/materials?id=${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/portal/materials?id=${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) {
         fetchMaterials();
@@ -119,8 +120,8 @@ const ManageMaterials = () => {
 
       <div style={{ background: 'var(--surface-color)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem' }}>Select Session</label>
-        <select 
-          value={selectedSessionId} 
+        <select
+          value={selectedSessionId}
           onChange={e => setSelectedSessionId(e.target.value)}
           style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-color)', color: 'var(--text-main)' }}
         >
@@ -135,14 +136,14 @@ const ManageMaterials = () => {
 
       {selectedSessionId && (
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-          
+
           {/* Upload Form */}
           <div style={{ flex: '1 1 300px' }}>
             <div style={{ background: 'var(--surface-color)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Upload Material</h2>
               {message && <div style={{ background: '#d1fae5', color: '#065f46', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>{message}</div>}
               {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
-              
+
               <form onSubmit={handleUpload}>
                 <div className="form-group">
                   <label>Title</label>
@@ -168,7 +169,7 @@ const ManageMaterials = () => {
           <div style={{ flex: '2 1 400px' }}>
             <div style={{ background: 'var(--surface-color)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Uploaded Materials</h2>
-              
+
               {loading && materials.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)' }}>Loading...</div>
               ) : materials.length > 0 ? (

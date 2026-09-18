@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 function Register() {
   const [name, setName] = useState('');
@@ -16,7 +17,7 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/register', {
+      const response = await apiFetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })
@@ -58,7 +59,7 @@ function Register() {
           <h2 style={{ color: 'var(--text-main)', fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem' }}>Create your account</h2>
 
           {error && <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid #ef4444', color: '#ef4444', padding: '12px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: '500' }}>{error}</div>}
-          
+
           {message && (
             <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', color: '#15803d', padding: '12px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: '500' }}>
               {message}

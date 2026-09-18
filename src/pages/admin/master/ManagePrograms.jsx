@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../../../lib/api';
 
 const ManagePrograms = () => {
   const [programs, setPrograms] = useState([]);
@@ -11,7 +12,7 @@ const ManagePrograms = () => {
   const fetchPrograms = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/programs');
+      const res = await apiFetch('/api/programs');
       const json = await res.json();
       if (json.success) setPrograms(json.data);
     } catch (e) {
@@ -28,10 +29,10 @@ const ManagePrograms = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     setMessage('');
-    
+
     try {
       const url = formData.id ? `/api/programs?id=${formData.id}` : '/api/programs';
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: formData.id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -51,7 +52,7 @@ const ManagePrograms = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus program ini? (Soft delete)')) return;
     try {
-      const res = await fetch(`/api/programs?id=${id}`, {
+      const res = await apiFetch(`/api/programs?id=${id}`, {
         method: 'DELETE'
       });
       const json = await res.json();
@@ -63,7 +64,7 @@ const ManagePrograms = () => {
 
   const openModal = (item = null) => {
     if (item) {
-      setFormData({ 
+      setFormData({
         ...item,
         description: item.description || '',
         requirements: item.requirements || ''
@@ -126,47 +127,47 @@ const ManagePrograms = () => {
           <div style={{ background: 'var(--surface-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{formData.id ? 'Edit Program' : 'Add Program'}</h2>
             {message && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{message}</div>}
-            
+
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Code</label>
-                  <input type="text" value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. C1-AVIONIC" />
+                  <input type="text" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. C1-AVIONIC" />
                 </div>
                 <div style={{ flex: 2 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Name</label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
               </div>
-              
+
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="3" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', resize: 'vertical' }}></textarea>
+                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows="3" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', resize: 'vertical' }}></textarea>
               </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Persyaratan (Requirements)</label>
-                <textarea value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} rows="5" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', resize: 'vertical' }} placeholder={`Contoh penulisan:\n<li>Warga Negara Indonesia</li>\n<li>Tidak buta warna</li>\n<li>Lulusan SMA/SMK</li>`}></textarea>
+                <textarea value={formData.requirements} onChange={e => setFormData({ ...formData, requirements: e.target.value })} rows="5" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', resize: 'vertical' }} placeholder={`Contoh penulisan:\n<li>Warga Negara Indonesia</li>\n<li>Tidak buta warna</li>\n<li>Lulusan SMA/SMK</li>`}></textarea>
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Passing Grade</label>
-                  <input type="number" step="0.01" value={formData.passing_grade} onChange={e => setFormData({...formData, passing_grade: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="number" step="0.01" value={formData.passing_grade} onChange={e => setFormData({ ...formData, passing_grade: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Min. Attendance (%)</label>
-                  <input type="number" step="0.01" value={formData.minimum_attendance_percent} onChange={e => setFormData({...formData, minimum_attendance_percent: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="number" step="0.01" value={formData.minimum_attendance_percent} onChange={e => setFormData({ ...formData, minimum_attendance_percent: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Status</label>
-                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                  <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="INACTIVE">INACTIVE</option>
                   </select>
                 </div>
               </div>
-              
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-main)' }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '6px' }}>Save</button>

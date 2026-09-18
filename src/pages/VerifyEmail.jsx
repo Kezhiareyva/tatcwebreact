@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  
+
   const [status, setStatus] = useState('verifying'); // verifying, success, error
   const [message, setMessage] = useState('Sedang memverifikasi email Anda...');
   const hasFetched = useRef(false);
@@ -21,7 +22,7 @@ function VerifyEmail() {
 
     const verifyToken = async () => {
       try {
-        const response = await fetch(`/api/auth/verify-email?token=${token}`);
+        const response = await apiFetch(`/api/auth/verify-email?token=${token}`);
         const data = await response.json();
 
         if (data.success) {
@@ -44,11 +45,11 @@ function VerifyEmail() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--background-main)' }}>
       <div style={{ width: '100%', maxWidth: '420px', padding: '3rem', textAlign: 'center', background: 'var(--surface-color)', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}>
         <h2 style={{ color: 'var(--text-main)', fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>Verifikasi Email</h2>
-        
+
         {status === 'verifying' && (
           <p style={{ color: 'var(--text-muted)' }}>{message}</p>
         )}
-        
+
         {status === 'success' && (
           <div>
             <div style={{ color: '#15803d', background: 'rgba(34, 197, 94, 0.1)', padding: '15px', borderRadius: '8px', marginBottom: '1.5rem' }}>

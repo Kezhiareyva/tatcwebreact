@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../../lib/api';
 
 const ManageRooms = () => {
   const [rooms, setRooms] = useState([]);
@@ -10,7 +11,7 @@ const ManageRooms = () => {
   const fetchRooms = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/rooms');
+      const res = await apiFetch('/api/rooms');
       const json = await res.json();
       if (json.success) setRooms(json.data);
     } catch (e) {
@@ -27,9 +28,9 @@ const ManageRooms = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     setMessage('');
-    
+
     try {
-      const res = await fetch('/api/rooms', {
+      const res = await apiFetch('/api/rooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -49,7 +50,7 @@ const ManageRooms = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus ruangan ini?')) return;
     try {
-      const res = await fetch(`/api/rooms?id=${id}`, {
+      const res = await apiFetch(`/api/rooms?id=${id}`, {
         method: 'DELETE'
       });
       const json = await res.json();
@@ -119,38 +120,38 @@ const ManageRooms = () => {
           <div style={{ background: 'var(--surface-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{formData.id ? 'Edit Room' : 'Add Room'}</h2>
             {message && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{message}</div>}
-            
+
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Code</label>
-                  <input type="text" value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. R-101" />
+                  <input type="text" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. R-101" />
                 </div>
                 <div style={{ flex: 2 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Name</label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
               </div>
-              
+
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 2 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Location</label>
-                  <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Capacity</label>
-                  <input type="number" value={formData.capacity} onChange={e => setFormData({...formData, capacity: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="number" value={formData.capacity} onChange={e => setFormData({ ...formData, capacity: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Status</label>
-                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
                 </select>
               </div>
-              
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-main)' }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '6px' }}>Save</button>

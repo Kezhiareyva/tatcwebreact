@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../../lib/api';
 
 const ManageModules = () => {
   const [modules, setModules] = useState([]);
@@ -10,7 +11,7 @@ const ManageModules = () => {
   const fetchModules = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/modules');
+      const res = await apiFetch('/api/modules');
       const json = await res.json();
       if (json.success) setModules(json.data);
     } catch (e) {
@@ -27,9 +28,9 @@ const ManageModules = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     setMessage('');
-    
+
     try {
-      const res = await fetch('/api/modules', {
+      const res = await apiFetch('/api/modules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -49,7 +50,7 @@ const ManageModules = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus modul ini? (Soft delete)')) return;
     try {
-      const res = await fetch(`/api/modules?id=${id}`, {
+      const res = await apiFetch(`/api/modules?id=${id}`, {
         method: 'DELETE'
       });
       const json = await res.json();
@@ -117,32 +118,32 @@ const ManageModules = () => {
           <div style={{ background: 'var(--surface-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{formData.id ? 'Edit Module' : 'Add Module'}</h2>
             {message && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{message}</div>}
-            
+
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Code</label>
-                  <input type="text" value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. MOD-01" />
+                  <input type="text" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} placeholder="e.g. MOD-01" />
                 </div>
                 <div style={{ flex: 2 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Name</label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
               </div>
-              
+
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="3" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', resize: 'vertical' }}></textarea>
+                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows="3" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', resize: 'vertical' }}></textarea>
               </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Status</label>
-                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
                 </select>
               </div>
-              
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-main)' }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '6px' }}>Save</button>

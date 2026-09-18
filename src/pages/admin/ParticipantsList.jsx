@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../lib/api';
 
 const ParticipantsList = () => {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importFile, setImportFile] = useState(null);
@@ -18,9 +19,9 @@ const ParticipantsList = () => {
   const fetchParticipants = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/participants');
+      const response = await apiFetch('/api/participants');
       const result = await response.json();
-      
+
       if (result.success) {
         setParticipants(result.data);
       } else {
@@ -40,9 +41,9 @@ const ParticipantsList = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     setMessage('');
-    
+
     try {
-      const res = await fetch('/api/participants', {
+      const res = await apiFetch('/api/participants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -70,7 +71,7 @@ const ParticipantsList = () => {
     formData.append('file', importFile);
 
     try {
-      const res = await fetch('/api/participants/import', {
+      const res = await apiFetch('/api/participants/import', {
         method: 'POST',
         body: formData
       });
@@ -92,7 +93,7 @@ const ParticipantsList = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus peserta ini? (Soft delete)')) return;
     try {
-      const res = await fetch(`/api/participants?id=${id}`, {
+      const res = await apiFetch(`/api/participants?id=${id}`, {
         method: 'DELETE'
       });
       const json = await res.json();
@@ -107,11 +108,11 @@ const ParticipantsList = () => {
       alert("Tidak ada data untuk diekspor.");
       return;
     }
-    
+
     // Create CSV content
     const headers = ["NIP / Nomor Identitas", "Nama Lengkap", "Email", "Nomor Telepon", "Program Diikuti", "Status"];
     const csvRows = [headers.join(',')];
-    
+
     participants.forEach(p => {
       const row = [
         `"${p.participant_number || ''}"`,
@@ -123,7 +124,7 @@ const ParticipantsList = () => {
       ];
       csvRows.push(row.join(','));
     });
-    
+
     const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -245,37 +246,37 @@ const ParticipantsList = () => {
           <div style={{ background: 'var(--surface-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{formData.id ? 'Edit Participant' : 'Add Participant'}</h2>
             {message && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{message}</div>}
-            
+
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Participant Number (NIP/ID)</label>
-                <input type="text" value={formData.participant_number} onChange={e => setFormData({...formData, participant_number: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                <input type="text" value={formData.participant_number} onChange={e => setFormData({ ...formData, participant_number: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
               </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Full Name</label>
-                <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                <input type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} required style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
               </div>
-              
+
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Email</label>
-                  <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Phone</label>
-                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
+                  <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }} />
                 </div>
               </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Status</label>
-                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
                 </select>
               </div>
-              
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-main)' }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '6px' }}>Save</button>
@@ -293,7 +294,7 @@ const ParticipantsList = () => {
               <h2 className="modal-title">Import Data Peserta (CSV)</h2>
               <button onClick={() => setIsImportModalOpen(false)} className="modal-close">&times;</button>
             </div>
-            
+
             <div className="modal-body">
               <div style={{ background: '#f1f5f9', padding: '15px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', color: 'var(--text-main)' }}>
                 <strong>Format Kolom (Wajib Berurutan):</strong><br />
@@ -308,7 +309,7 @@ const ParticipantsList = () => {
                   <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Hasil Import:</h3>
                   <div style={{ color: '#10b981', fontWeight: 'bold' }}>Berhasil: {importResult.success_count} baris</div>
                   <div style={{ color: '#ef4444', fontWeight: 'bold' }}>Gagal: {importResult.error_count} baris</div>
-                  
+
                   {importResult.errors.length > 0 && (
                     <div style={{ marginTop: '1rem', maxHeight: '150px', overflowY: 'auto', background: '#fee2e2', padding: '10px', borderRadius: '8px', fontSize: '0.85rem', color: '#991b1b' }}>
                       <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>

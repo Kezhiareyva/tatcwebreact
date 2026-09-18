@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 
 function Home() {
   const { user, logout } = useAuth();
@@ -17,29 +18,29 @@ function Home() {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    
+
     // Fetch CMS Data
-    fetch('/api/cms/banners?public=true')
+    apiFetch('/api/cms/banners?public=true')
       .then(res => res.json())
       .then(json => { if (json.success) setBanners(json.data); });
-      
-    fetch('/api/cms/partners?public=true')
+
+    apiFetch('/api/cms/partners?public=true')
       .then(res => res.json())
       .then(json => { if (json.success) setPartners(json.data); });
-      
-    fetch('/api/cms/news?public=true')
+
+    apiFetch('/api/cms/news?public=true')
       .then(res => res.json())
-      .then(json => { 
+      .then(json => {
         if (json.success) {
           // Hanya ambil 3 berita terbaru untuk beranda
           setRecentNews(json.data.slice(0, 3));
         }
       });
-      
-    fetch('/api/public/open-programs')
+
+    apiFetch('/api/public/open-programs')
       .then(res => res.json())
       .then(json => { if (json.success) setOpenPrograms(json.data); });
-      
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -60,6 +61,7 @@ function Home() {
           </div>
           <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
             <a href="#" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>Home</a>
+            <a href="#programs" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>Programs</a>
             <a href="#about" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>About Us</a>
             <Link to="/news" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>News</Link>
             <a href="#contacts" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>Contacts</a>
@@ -88,7 +90,7 @@ function Home() {
         <div className="hero-section" style={banners.length > 0 ? { backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.9)), url('${banners[0].image_url}')` } : {}}>
           <div style={{ maxWidth: '1000px', padding: '0 2rem' }}>
             <h1 className="hero-title animate-fade-in-up delay-100">
-              {banners.length > 0 ? banners[0].title.split('\\n').map((line, i) => <React.Fragment key={i}>{line}<br/></React.Fragment>) : <>Telkom University<br />Aviation Training Center</>}
+              {banners.length > 0 ? banners[0].title.split('\\n').map((line, i) => <React.Fragment key={i}>{line}<br /></React.Fragment>) : <>Telkom University<br />Aviation Training Center</>}
             </h1>
 
             <p className="hero-subtitle animate-fade-in-up delay-200">
@@ -247,7 +249,7 @@ function Home() {
             </div>
             <Link to="/news" style={{ color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none' }}>Lihat Semua Berita &rarr;</Link>
           </div>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
             {recentNews.length > 0 ? (
               recentNews.map(news => (

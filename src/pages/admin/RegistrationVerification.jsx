@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../lib/api';
 
 const RegistrationVerification = () => {
   const [registrations, setRegistrations] = useState([]);
@@ -10,7 +11,7 @@ const RegistrationVerification = () => {
   const fetchRegistrations = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/registrations');
+      const res = await apiFetch('/api/admin/registrations');
       const json = await res.json();
       if (json.success) setRegistrations(json.data);
     } catch (e) {
@@ -27,7 +28,7 @@ const RegistrationVerification = () => {
   const handleVerify = async (status) => {
     if (!selectedReg) return;
     try {
-      const res = await fetch(`/api/admin/registrations/${selectedReg.id}/verify`, {
+      const res = await apiFetch(`/api/admin/registrations/${selectedReg.id}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, notes })
@@ -113,7 +114,7 @@ const RegistrationVerification = () => {
           <div style={{ background: 'var(--surface-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Detail Pendaftaran</h2>
             {message && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{message}</div>}
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
               <div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Nama Peserta</p>
@@ -148,7 +149,7 @@ const RegistrationVerification = () => {
               <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Catatan Verifikasi (opsional)</label>
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows="3" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', resize: 'vertical' }} placeholder="Masukkan alasan jika ditolak atau perlu revisi..."></textarea>
             </div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
               <button onClick={() => setSelectedReg(null)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-main)' }}>Tutup</button>
               {selectedReg.status === 'UNDER_REVIEW' && (
