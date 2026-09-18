@@ -20,6 +20,14 @@ function normalizeRole(role) {
   return map[String(role || '').toUpperCase()] || 'PESERTA';
 }
 
+function hasStrongPassword(password) {
+  return password.length >= 12
+    && /[a-z]/.test(password)
+    && /[A-Z]/.test(password)
+    && /\d/.test(password)
+    && /[^A-Za-z0-9\s]/.test(password);
+}
+
 async function findUserByEmail(email) {
   const pool = connection();
   try {
@@ -286,7 +294,8 @@ async function register(request) {
   const password = String(data.password || '');
   const name = String(data.name || '').trim();
 
-  if (!email || password.length < 8) return fail('Email valid dan kata sandi minimal 8 karakter wajib diisi.', 422);
+  if (!email) return fail('Email valid wajib diisi.', 422);
+  if (!hasStrongPassword(password)) return fail('Kata sandi harus minimal 12 karakter dan mengandung huruf kecil, huruf besar, angka, serta simbol.', 422);
   if (!name) return fail('Nama lengkap wajib diisi.', 422);
   const exists = await findUserByEmail(email); if (exists) return fail('Email sudah terdaftar.', 409);
   const hash = await bcrypt.hash(password, 12); const pool = connection();

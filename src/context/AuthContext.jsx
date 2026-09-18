@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { apiFetch } from '../lib/api';
 
 const AuthContext = createContext(null);
 
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   const refreshSession = async () => {
     try {
-      const response = await fetch('/api/auth/me', { headers: { Accept: 'application/json' } });
+      const response = await apiFetch('/api/auth/me', { headers: { Accept: 'application/json' } });
       const data = await response.json();
       if (data.success) setUser(data.data);
       else setUser(null);
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => { refreshSession(); }, []);
 
   const login = async ({ email, password }) => {
-    const response = await fetch('/api/auth/login', {
+    const response = await apiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    try { await fetch('/api/auth/logout', { method: 'POST' }); } finally { setUser(null); }
+    try { await apiFetch('/api/auth/logout', { method: 'POST' }); } finally { setUser(null); }
   };
 
   const value = useMemo(() => ({ user, login, logout, loading, refreshSession }), [user, loading]);

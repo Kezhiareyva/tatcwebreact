@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -21,7 +22,7 @@ function ResetPassword() {
     e.preventDefault();
     setError('');
     setMessage('');
-    
+
     if (password !== confirmPassword) {
       setError('Konfirmasi kata sandi tidak cocok.');
       return;
@@ -35,7 +36,7 @@ function ResetPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await apiFetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password })

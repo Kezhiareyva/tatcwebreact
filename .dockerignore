@@ -3,7 +3,6 @@ dist
 dist-ssr
 .git
 .gitignore
-.env
 .env.*
 !.env.example
 *.md

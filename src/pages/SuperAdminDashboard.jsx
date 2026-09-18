@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 function SuperAdminDashboard() {
   const [user, setUser] = useState(null);
@@ -12,13 +13,13 @@ function SuperAdminDashboard() {
       navigate('/login');
       return;
     }
-    
+
     const parsedUser = JSON.parse(storedUser);
     if (parsedUser.role !== 'superadmin') {
       navigate('/'); // Or an unauthorized page
       return;
     }
-    
+
     setUser(parsedUser);
   }, [navigate]);
 
@@ -49,7 +50,7 @@ function SuperAdminDashboard() {
         </nav>
         <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ fontSize: '0.9rem', marginBottom: '1rem', color: 'var(--border-color)' }}>
-            Logged in as:<br/><strong>{user.username}</strong>
+            Logged in as:<br /><strong>{user.username}</strong>
           </div>
           <button onClick={handleLogout} className="btn" style={{ background: '#ef4444', color: 'var(--surface-color)', width: '100%', padding: '8px' }}>
             Log Out
@@ -71,7 +72,7 @@ function SuperAdminDashboard() {
               This is the Super Admin control panel. From here, you have full access to manage all users (Admins, Instructors, Participants), configure system settings, and oversee all activities on the TATC platform.
             </p>
             <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>
-              Your email: <strong>{user.email}</strong><br/>
+              Your email: <strong>{user.email}</strong><br />
               Status: <strong style={{ color: '#10b981' }}>{user.status_approve}</strong>
             </p>
           </div>

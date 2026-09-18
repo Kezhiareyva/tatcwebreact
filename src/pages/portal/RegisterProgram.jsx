@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { apiFetch } from '../../lib/api';
 
 const RegisterProgram = () => {
   const { user } = useAuth();
@@ -24,7 +25,7 @@ const RegisterProgram = () => {
 
     const fetchFields = async () => {
       try {
-        const res = await fetch(`/api/portal/programs/${programId}/form`);
+        const res = await apiFetch(`/api/portal/programs/${programId}/form`);
         const json = await res.json();
         if (json.success) {
           setFields(json.data);
@@ -68,7 +69,7 @@ const RegisterProgram = () => {
     try {
       const submitData = new FormData();
       submitData.append('batch_id', batchId);
-      
+
       for (const [key, value] of Object.entries(formData)) {
         if (Array.isArray(value)) {
           submitData.append(key, value.join(', '));
@@ -77,7 +78,7 @@ const RegisterProgram = () => {
         }
       }
 
-      const res = await fetch('/api/portal/registrations', {
+      const res = await apiFetch('/api/portal/registrations', {
         method: 'POST',
         body: submitData // letting browser set content-type for multipart
       });
@@ -115,21 +116,21 @@ const RegisterProgram = () => {
             {fields.map(field => {
               const key = `field_${field.id}`;
               const options = field.options_json ? field.options_json.split(',').map(s => s.trim()) : [];
-              
+
               return (
                 <div key={field.id}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'var(--text-main)' }}>
                     {field.label} {field.is_required && <span style={{ color: '#ef4444' }}>*</span>}
                   </label>
-                  
+
                   {field.field_type === 'TEXT' && (
                     <input type="text" required={!!field.is_required} value={formData[key] || ''} onChange={e => handleInputChange(field.id, 'TEXT', e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)' }} />
                   )}
-                  
+
                   {field.field_type === 'TEXTAREA' && (
                     <textarea required={!!field.is_required} rows="4" value={formData[key] || ''} onChange={e => handleInputChange(field.id, 'TEXTAREA', e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', resize: 'vertical' }}></textarea>
                   )}
-                  
+
                   {field.field_type === 'SELECT' && (
                     <select required={!!field.is_required} value={formData[key] || ''} onChange={e => handleInputChange(field.id, 'SELECT', e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)' }}>
                       <option value="">-- Pilih --</option>

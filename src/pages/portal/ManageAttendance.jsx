@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { apiFetch } from '../../lib/api';
 
 const ManageAttendance = () => {
   const { user } = useAuth();
@@ -14,7 +15,7 @@ const ManageAttendance = () => {
     const fetchSessions = async () => {
       try {
         const instructorId = user.profile?.id || 0;
-        const res = await fetch(`/api/portal/instructor_dashboard?instructor_id=${instructorId}`);
+        const res = await apiFetch(`/api/portal/instructor_dashboard?instructor_id=${instructorId}`);
         const json = await res.json();
         if (json.success) setSessions(json.data.upcoming_sessions);
       } catch (err) {
@@ -30,11 +31,11 @@ const ManageAttendance = () => {
       setParticipants([]);
       return;
     }
-    
+
     const fetchParticipants = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/portal/attendance?session_id=${selectedSessionId}`);
+        const res = await apiFetch(`/api/portal/attendance?session_id=${selectedSessionId}`);
         const json = await res.json();
         if (json.success) {
           // Initialize status if null
@@ -66,7 +67,7 @@ const ManageAttendance = () => {
   const handleSave = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/portal/attendance', {
+      const res = await apiFetch('/api/portal/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -93,8 +94,8 @@ const ManageAttendance = () => {
 
       <div style={{ background: 'var(--surface-color)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
         <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem' }}>Select Session</label>
-        <select 
-          value={selectedSessionId} 
+        <select
+          value={selectedSessionId}
           onChange={e => setSelectedSessionId(e.target.value)}
           style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-color)', color: 'var(--text-main)' }}
         >
@@ -134,11 +135,11 @@ const ManageAttendance = () => {
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{p.participant_number || '-'}</div>
                   </td>
                   <td style={{ padding: '1rem 1.5rem' }}>
-                    <select 
-                      value={p.status} 
+                    <select
+                      value={p.status}
                       onChange={e => handleStatusChange(p.participant_id, e.target.value)}
-                      style={{ 
-                        width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', 
+                      style={{
+                        width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)',
                         background: p.status === 'PRESENT' ? '#dcfce7' : (p.status === 'ABSENT' ? '#fee2e2' : '#fef3c7'),
                         color: p.status === 'PRESENT' ? '#166534' : (p.status === 'ABSENT' ? '#991b1b' : '#92400e'),
                         fontWeight: '600'
@@ -151,9 +152,9 @@ const ManageAttendance = () => {
                     </select>
                   </td>
                   <td style={{ padding: '1rem 1.5rem' }}>
-                    <input 
-                      type="text" 
-                      value={p.notes} 
+                    <input
+                      type="text"
+                      value={p.notes}
                       onChange={e => handleNotesChange(p.participant_id, e.target.value)}
                       placeholder="Optional notes..."
                       style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)' }}

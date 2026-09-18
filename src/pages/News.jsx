@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 
 function News() {
   const { user, logout } = useAuth();
@@ -8,7 +9,7 @@ function News() {
   const [scrolled, setScrolled] = useState(false);
   const [newsList, setNewsList] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [searchParams] = useSearchParams();
   const slug = searchParams.get('slug');
   const [singleNews, setSingleNews] = useState(null);
@@ -18,25 +19,25 @@ function News() {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    
+
     if (slug) {
-      fetch(`/api/cms/news?public=true&slug=${slug}`)
+      apiFetch(`/api/cms/news?public=true&slug=${slug}`)
         .then(res => res.json())
-        .then(json => { 
-          if (json.success) setSingleNews(json.data); 
+        .then(json => {
+          if (json.success) setSingleNews(json.data);
           setLoading(false);
         })
         .catch(() => setLoading(false));
     } else {
-      fetch('/api/cms/news?public=true')
+      apiFetch('/api/cms/news?public=true')
         .then(res => res.json())
-        .then(json => { 
-          if (json.success) setNewsList(json.data); 
+        .then(json => {
+          if (json.success) setNewsList(json.data);
           setLoading(false);
         })
         .catch(() => setLoading(false));
     }
-      
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, [slug]);
 
@@ -62,7 +63,7 @@ function News() {
             <a href="/#about" style={{ color: 'var(--navbar-text)', opacity: 0.8, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = 'var(--navbar-text)'}>About Us</a>
             <Link to="/news" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontSize: '0.95rem', fontWeight: '600' }}>News</Link>
             <a href="#contacts" style={{ color: 'var(--navbar-text)', opacity: 0.8, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = 'var(--navbar-text)'}>Contacts</a>
-            
+
             <div style={{ display: 'flex', gap: '1rem', marginLeft: '1rem', alignItems: 'center' }}>
               {user ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -85,7 +86,7 @@ function News() {
 
       <main style={{ paddingTop: '100px', minHeight: '80vh', backgroundColor: 'var(--background-main)' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem' }}>
-          
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>Loading...</div>
           ) : slug && singleNews ? (
@@ -107,7 +108,7 @@ function News() {
             // NEWS LIST VIEW
             <>
               <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '2rem', textAlign: 'center' }}>Latest News & Events</h1>
-              
+
               {newsList.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>Belum ada berita yang diterbitkan.</div>
               ) : (

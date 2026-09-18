@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../../lib/api';
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
@@ -11,7 +12,7 @@ const InstructorDashboard = () => {
     const fetchData = async () => {
       try {
         const instructorId = user.profile?.id || 0;
-        const res = await fetch(`/api/portal/instructor_dashboard?instructor_id=${instructorId}`);
+        const res = await apiFetch(`/api/portal/instructor_dashboard?instructor_id=${instructorId}`);
         const json = await res.json();
         if (json.success) {
           setSessions(json.data.upcoming_sessions);
@@ -28,7 +29,7 @@ const InstructorDashboard = () => {
   }, [user]);
 
   if (loading) return <div style={{ padding: '2rem' }}>Loading dashboard...</div>;
-  
+
   if (!user.profile) {
     return (
       <div style={{ padding: '3rem', textAlign: 'center' }}>
@@ -59,7 +60,7 @@ const InstructorDashboard = () => {
       </div>
 
       <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--border-color)' }}>Upcoming Teaching Schedule</h2>
-      
+
       {sessions.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>Tidak ada jadwal mengajar.</p> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
           {sessions.map(s => (
@@ -70,7 +71,7 @@ const InstructorDashboard = () => {
               </div>
               <h3 style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.25rem' }}>{s.title}</h3>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{s.module_name}</p>
-              
+
               <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: '#f1f5f9', padding: '10px', borderRadius: '8px' }}>
                 <div style={{ marginBottom: '0.25rem' }}><strong>Batch:</strong> {s.batch_name}</div>
                 <div><strong>Room:</strong> {s.room_name || 'TBA'}</div>
