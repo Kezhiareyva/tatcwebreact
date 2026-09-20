@@ -2,6 +2,23 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 
+function getPasswordStrength(value) {
+  const password = String(value || '');
+  const requirements = {
+    length: password.length >= 12,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    symbol: /[^A-Za-z0-9\s]/.test(password),
+  };
+  const score = Object.values(requirements).filter(Boolean).length;
+
+  if (!password) return { label: '', color: 'transparent', score: 0, isStrong: false, requirements };
+  if (score === 5) return { label: 'Kuat', color: '#16a34a', score, isStrong: true, requirements };
+  if (score >= 3) return { label: 'Sedang', color: '#d97706', score, isStrong: false, requirements };
+  return { label: 'Lemah', color: '#dc2626', score, isStrong: false, requirements };
+}
+
 function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -9,11 +26,16 @@ function Register() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const passwordStrength = getPasswordStrength(password);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    if (!passwordStrength.isStrong) {
+      setError('Gunakan kata sandi kuat: minimal 12 karakter serta huruf kecil, huruf besar, angka, dan simbol.');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -78,10 +100,19 @@ function Register() {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem' }}>Password</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', outline: 'none' }} />
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required aria-describedby="password-strength password-rules" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: `1px solid ${password ? passwordStrength.color : 'var(--border-color)'}`, background: 'var(--background-main)', outline: 'none' }} />
+                {password && (
+                  <div id="password-strength" aria-live="polite" style={{ marginTop: '0.6rem' }}>
+                    <div style={{ display: 'flex', gap: '4px', marginBottom: '0.35rem' }}>
+                      {[1, 2, 3, 4, 5].map(level => <span key={level} style={{ height: '4px', flex: 1, borderRadius: '4px', background: level <= passwordStrength.score ? passwordStrength.color : 'var(--border-color)' }} />)}
+                    </div>
+                    <span style={{ color: passwordStrength.color, fontSize: '0.8rem', fontWeight: '600' }}>Kekuatan kata sandi: {passwordStrength.label}</span>
+                  </div>
+                )}
+                <p id="password-rules" style={{ color: 'var(--text-muted)', fontSize: '0.78rem', lineHeight: 1.45, margin: '0.5rem 0 0' }}>Minimal 12 karakter, terdiri dari huruf kecil, huruf besar, angka, dan simbol.</p>
               </div>
 
-              <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '0.5rem', padding: '14px', width: '100%', fontSize: '1rem', fontWeight: '600' }}>
+              <button type="submit" className="btn btn-primary" disabled={loading || !passwordStrength.isStrong} style={{ marginTop: '0.5rem', padding: '14px', width: '100%', fontSize: '1rem', fontWeight: '600' }}>
                 {loading ? 'Processing...' : 'Sign Up'}
               </button>
             </form>
