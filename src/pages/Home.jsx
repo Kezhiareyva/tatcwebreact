@@ -55,7 +55,7 @@ function Home() {
         boxShadow: scrolled ? '0 4px 20px -2px rgba(15,23,42,0.1)' : 'none',
         position: 'fixed', width: '100%', top: 0, zIndex: 50, transition: 'all 0.3s ease'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <img src="/tatc.png" alt="Tel-U ATC Logo" style={{ height: '45px', objectFit: 'contain', transition: 'filter 0.3s' }} />
           </div>
