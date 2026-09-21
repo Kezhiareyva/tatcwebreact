@@ -144,6 +144,90 @@ async function generic(path, request, params) {
     return rows[0] ? ok(rows[0]) : fail('Berita tidak ditemukan.', 404);
   }
 
+  // ── Sessions: custom GET (with JOINs) + POST (with instructors) + DELETE (cascade child records) ──
+  if (path === 'sessions') {
+    if (method === 'GET') {
+      if (id) {
+        const [rows] = await pool.query(
+          `SELECT s.*, b.name batch_name, m.name module_name, r.name room_name,
+                  (SELECT GROUP_CONCAT(si2.instructor_id ORDER BY si2.instructor_id SEPARATOR ',')
+                   FROM session_instructors si2 WHERE si2.session_id = s.id) as instructor_ids,
+                  (SELECT GROUP_CONCAT(i2.full_name ORDER BY i2.full_name SEPARATOR ', ')
+                   FROM session_instructors si2 JOIN instructors i2 ON i2.id = si2.instructor_id
+                   WHERE si2.session_id = s.id) as instructor_names
+           FROM sessions s
+           JOIN batches b ON b.id = s.batch_id
+           LEFT JOIN modules m ON m.id = s.module_id
+           LEFT JOIN rooms r ON r.id = s.room_id
+           WHERE s.id = ? LIMIT 1`, [id]
+        );
+        return rows[0] ? ok(rows[0]) : fail('Data tidak ditemukan.', 404);
+      }
+      const [rows] = await pool.query(
+        `SELECT s.*, b.name batch_name, m.name module_name, r.name room_name,
+                (SELECT GROUP_CONCAT(i2.full_name ORDER BY i2.full_name SEPARATOR ', ')
+                 FROM session_instructors si2 JOIN instructors i2 ON i2.id = si2.instructor_id
+                 WHERE si2.session_id = s.id) as instructor_names
+         FROM sessions s
+         JOIN batches b ON b.id = s.batch_id
+         LEFT JOIN modules m ON m.id = s.module_id
+         LEFT JOIN rooms r ON r.id = s.room_id
+         ORDER BY s.session_date DESC, s.start_time DESC`
+      );
+      return ok(rows);
+    }
+
+    if (method === 'POST' || method === 'PUT') {
+      const data = await body(request);
+      const clean = {};
+      const sessionCols = new Set(['batch_id', 'module_id', 'room_id', 'title', 'session_date', 'start_time', 'end_time', 'status']);
+      for (const [key, value] of Object.entries(data)) {
+        if (sessionCols.has(key)) clean[key] = value === '' ? null : value;
+      }
+      if (!Object.keys(clean).length) return fail('Tidak ada field yang dapat disimpan.', 422);
+
+      const instructorIds = Array.isArray(data.instructors) ? data.instructors.map(Number).filter(Boolean) : [];
+
+      if (method === 'POST' && !id) {
+        const keys = Object.keys(clean);
+        const [r] = await pool.query(
+          `INSERT INTO sessions (${keys.map(k => `\`${k}\``).join(',')}) VALUES (${keys.map(() => '?').join(',')})`,
+          keys.map(k => clean[k])
+        );
+        const newId = r.insertId;
+        if (instructorIds.length) {
+          const vals = instructorIds.map(iid => [newId, iid]);
+          await pool.query('INSERT IGNORE INTO session_instructors (session_id, instructor_id) VALUES ?', [vals]);
+        }
+        return ok({ id: newId }, 'Sesi berhasil dibuat.');
+      }
+
+      const target = id || data.id;
+      if (!target) return fail('ID wajib diisi.', 422);
+      const keys = Object.keys(clean);
+      await pool.query(
+        `UPDATE sessions SET ${keys.map(k => `\`${k}\`=?`).join(',')} WHERE id=?`,
+        [...keys.map(k => clean[k]), target]
+      );
+      // Sync instructors
+      await pool.query('DELETE FROM session_instructors WHERE session_id=?', [target]);
+      if (instructorIds.length) {
+        const vals = instructorIds.map(iid => [Number(target), iid]);
+        await pool.query('INSERT IGNORE INTO session_instructors (session_id, instructor_id) VALUES ?', [vals]);
+      }
+      return ok({ id: target }, 'Sesi berhasil diperbarui.');
+    }
+
+    if (method === 'DELETE') {
+      if (!id) return fail('ID wajib diisi.', 422);
+      // Remove child records first to avoid FK constraint errors
+      await pool.query('DELETE FROM attendance WHERE session_id=?', [id]);
+      await pool.query('DELETE FROM session_instructors WHERE session_id=?', [id]);
+      await pool.query('DELETE FROM sessions WHERE id=?', [id]);
+      return ok(null, 'Sesi berhasil dihapus.');
+    }
+  }
+
   if (path === 'participants' && method === 'GET') {
     if (id) {
       const [rows] = await pool.query(`SELECT * FROM \`participants\` WHERE id=? LIMIT 1`, [id]);
