@@ -60,6 +60,7 @@ function News() {
           </div>
           <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
             <Link to="/" style={{ color: 'var(--navbar-text)', opacity: 0.8, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = 'var(--navbar-text)'}>Home</Link>
+            <a href="/#programs" style={{ color: 'var(--navbar-text)', opacity: 0.8, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = 'var(--navbar-text)'}>Programs</a>
             <a href="/#about" style={{ color: 'var(--navbar-text)', opacity: 0.8, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = 'var(--navbar-text)'}>About Us</a>
             <Link to="/news" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontSize: '0.95rem', fontWeight: '600' }}>News</Link>
             <a href="#contacts" style={{ color: 'var(--navbar-text)', opacity: 0.8, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = 'var(--navbar-text)'}>Contacts</a>
