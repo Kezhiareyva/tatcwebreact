@@ -92,15 +92,15 @@ function Register() {
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ textAlign: 'left' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem' }}>Full Name</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', outline: 'none' }} />
+                <input type="text" value={name} onChange={e => setName(e.target.value)} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', outline: 'none' }} />
               </div>
               <div style={{ textAlign: 'left' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem' }}>Email Address</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', outline: 'none' }} />
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', outline: 'none' }} />
               </div>
               <div style={{ textAlign: 'left' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem' }}>Password</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required aria-describedby="password-strength password-rules" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: `1px solid ${password ? passwordStrength.color : 'var(--border-color)'}`, background: 'var(--background-main)', outline: 'none' }} />
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required aria-describedby="password-strength password-rules" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: `1px solid ${password ? passwordStrength.color : 'var(--border-color)'}`, background: 'var(--background-main)', color: 'var(--text-main)', outline: 'none' }} />
                 {password && (
                   <div id="password-strength" aria-live="polite" style={{ marginTop: '0.6rem' }}>
                     <div style={{ display: 'flex', gap: '4px', marginBottom: '0.35rem' }}>
