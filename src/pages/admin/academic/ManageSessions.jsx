@@ -52,9 +52,13 @@ const ManageSessions = () => {
     e.preventDefault();
     setMessage('');
 
+    const isEdit = Boolean(formData.id);
+    const url = isEdit ? `/api/sessions?id=${formData.id}` : '/api/sessions';
+    const method = isEdit ? 'PUT' : 'POST';
+
     try {
-      const res = await apiFetch('/api/sessions', {
-        method: 'POST',
+      const res = await apiFetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });

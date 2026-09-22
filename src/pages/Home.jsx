@@ -63,7 +63,7 @@ function Home() {
             <a href="#" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>Home</a>
             <a href="#programs" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>Programs</a>
             <a href="#about" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>About Us</a>
-            <Link to="/news" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>News</Link>
+            <a href="#news" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>News</a>
             <a href="#contacts" style={{ color: scrolled ? 'var(--navbar-text)' : '#ffffff', opacity: scrolled ? 0.8 : 0.9, textDecoration: 'none', fontSize: '0.95rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = scrolled ? 'var(--navbar-text)' : '#ffffff'}>Contacts</a>
             <div style={{ display: 'flex', gap: '1rem', marginLeft: '1rem', alignItems: 'center' }}>
               {user ? (
@@ -241,7 +241,7 @@ function Home() {
         <div style={{ width: '100%', height: '1px', background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.1), transparent)', margin: '0 auto 4rem' }}></div>
 
         {/* Latest News Section */}
-        <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0 2rem 6rem' }}>
+        <div id="news" style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0 2rem 6rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
             <div>
               <h2 style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Berita Terbaru</h2>

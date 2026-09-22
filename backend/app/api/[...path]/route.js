@@ -346,6 +346,13 @@ async function generic(path, request, params) {
       if (!clean.status) clean.status = 'VALID';
     }
 
+    // Prevent duplicate email when creating a new participant
+    if (path === 'participants' && method === 'POST' && !id && clean.email) {
+      const emailToCheck = String(clean.email).trim().toLowerCase();
+      const [existing] = await pool.query('SELECT id FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1', [emailToCheck]);
+      if (existing.length > 0) return fail('Email peserta sudah terdaftar.', 409);
+    }
+
     if (!Object.keys(clean).length) return fail('Tidak ada field yang dapat disimpan.', 422);
     if (method === 'POST' && !id) {
       const keys = Object.keys(clean); const vals = keys.map(k => clean[k]);
@@ -667,6 +674,45 @@ async function portal(route, request, params) {
   if (route === 'portal/materials') {
     return ok([]);
   }
+
+  if (route === 'portal/profile') {
+    const role = normalizeRole(session.role);
+    if (role === 'PESERTA') {
+      let rows;
+      try {
+        [rows] = await pool.query(
+          'SELECT id, participant_number, full_name, nik, birth_place, birth_date, gender, marital_status, phone, email, address, occupation, institution, status FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+          [session.email]
+        );
+      } catch {
+        [rows] = await pool.query(
+          'SELECT id, participant_number, full_name, birth_place, birth_date, gender, marital_status, phone, email, address, status FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+          [session.email]
+        );
+      }
+      return rows[0] ? ok(rows[0]) : fail('Profil peserta tidak ditemukan.', 404);
+    }
+    if (role === 'INSTRUKTUR') {
+      const [rows] = await pool.query(
+        'SELECT id, full_name, email, phone, status FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+        [session.email]
+      );
+      return rows[0] ? ok(rows[0]) : fail('Profil instruktur tidak ditemukan.', 404);
+    }
+    return fail('Endpoint ini hanya untuk peserta dan instruktur.', 403);
+  }
+
+  if (route === 'portal/certificates') {
+    if (normalizeRole(session.role) !== 'PESERTA') return fail('Hanya untuk peserta.', 403);
+    const [participant] = await pool.query('SELECT id FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1', [session.email]);
+    if (!participant[0]) return ok([]);
+    const [rows] = await pool.query(
+      'SELECT * FROM certificates WHERE participant_id = ? ORDER BY issue_date DESC',
+      [participant[0].id]
+    );
+    return ok(rows);
+  }
+
   return fail('Portal endpoint tidak ditemukan.', 404);
 }
 
@@ -839,12 +885,127 @@ export async function POST(request, context) {
       return ok(null, 'Registration verified.');
     }
 
+    if (route === 'portal/profile') {
+      const session = await getSession();
+      if (!session) return fail('Unauthorized', 401);
+      const pool = connection();
+      const role = normalizeRole(session.role);
+      if (role === 'PESERTA') {
+        // Try with new columns first, fallback to base columns if migration not yet run
+        let rows;
+        try {
+          [rows] = await pool.query(
+            'SELECT id, participant_number, full_name, nik, birth_place, birth_date, gender, marital_status, phone, email, address, occupation, institution, status FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+            [session.email]
+          );
+        } catch {
+          [rows] = await pool.query(
+            'SELECT id, participant_number, full_name, birth_place, birth_date, gender, marital_status, phone, email, address, status FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+            [session.email]
+          );
+        }
+        return rows[0] ? ok(rows[0]) : fail('Profil peserta tidak ditemukan.', 404);
+      }
+      if (role === 'INSTRUKTUR') {
+        const [rows] = await pool.query(
+          'SELECT id, full_name, email, phone, status FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+          [session.email]
+        );
+        return rows[0] ? ok(rows[0]) : fail('Profil instruktur tidak ditemukan.', 404);
+      }
+      return fail('Endpoint ini hanya untuk peserta dan instruktur.', 403);
+    }
+
+    if (route === 'portal/certificates') {
+      const session = await getSession();
+      if (!session) return fail('Unauthorized', 401);
+      if (normalizeRole(session.role) !== 'PESERTA') return fail('Hanya untuk peserta.', 403);
+      const pool = connection();
+      const [participant] = await pool.query('SELECT id FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1', [session.email]);
+      if (!participant[0]) return ok([]);
+      const [rows] = await pool.query(
+        'SELECT * FROM certificates WHERE participant_id = ? ORDER BY issue_date DESC',
+        [participant[0].id]
+      );
+      return ok(rows);
+    }
+
     return await generic(route, request, new URL(request.url).searchParams);
   } catch (e) { return fail(e.message || 'Server error.', e.status || 500); }
 }
 
 export async function PUT(request, context) {
-  try { const { path = [] } = await context.params; return await generic(path.join('/'), request, new URL(request.url).searchParams); }
+  try {
+    const { path = [] } = await context.params;
+    const route = path.join('/');
+
+    if (route === 'portal/profile') {
+      const session = await getSession();
+      if (!session) return fail('Unauthorized', 401);
+      const pool = connection();
+      const role = normalizeRole(session.role);
+      const data = await body(request);
+
+      if (role === 'PESERTA') {
+        // Only allow updating safe personal-info fields — not status, email, or participant_number
+        const allowed = new Set(['full_name', 'nik', 'birth_place', 'birth_date', 'gender', 'marital_status', 'phone', 'address', 'occupation', 'institution']);
+        const clean = {};
+        for (const [k, v] of Object.entries(data)) {
+          if (allowed.has(k)) clean[k] = v === '' ? null : v;
+        }
+        // If new columns don't exist yet, silently drop them to avoid MySQL error
+        const cols = await tableColumns('participants');
+        const safeClean = Object.fromEntries(Object.entries(clean).filter(([k]) => cols.has(k)));
+        if (!Object.keys(safeClean).length) return fail('Tidak ada field yang dapat diperbarui.', 422);
+        const [existing] = await pool.query('SELECT id FROM participants WHERE email = ? AND deleted_at IS NULL LIMIT 1', [session.email]);
+        if (!existing[0]) return fail('Profil peserta tidak ditemukan.', 404);
+        const keys = Object.keys(safeClean);
+        await pool.query(
+          `UPDATE participants SET ${keys.map(k => `\`${k}\`=?`).join(', ')} WHERE id=?`,
+          [...keys.map(k => safeClean[k]), existing[0].id]
+        );
+        // Refresh and return updated profile — fallback if new cols not yet migrated
+        let updated;
+        try {
+          [updated] = await pool.query(
+            'SELECT id, participant_number, full_name, nik, birth_place, birth_date, gender, marital_status, phone, email, address, occupation, institution, status FROM participants WHERE id=? LIMIT 1',
+            [existing[0].id]
+          );
+        } catch {
+          [updated] = await pool.query(
+            'SELECT id, participant_number, full_name, birth_place, birth_date, gender, marital_status, phone, email, address, status FROM participants WHERE id=? LIMIT 1',
+            [existing[0].id]
+          );
+        }
+        return ok(updated[0], 'Profil berhasil diperbarui.');
+      }
+
+      if (role === 'INSTRUKTUR') {
+        const allowed = new Set(['full_name', 'phone']);
+        const clean = {};
+        for (const [k, v] of Object.entries(data)) {
+          if (allowed.has(k)) clean[k] = v === '' ? null : v;
+        }
+        if (!Object.keys(clean).length) return fail('Tidak ada field yang dapat diperbarui.', 422);
+        const [existing] = await pool.query('SELECT id FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1', [session.email]);
+        if (!existing[0]) return fail('Profil instruktur tidak ditemukan.', 404);
+        const keys = Object.keys(clean);
+        await pool.query(
+          `UPDATE instructors SET ${keys.map(k => `\`${k}\`=?`).join(', ')} WHERE id=?`,
+          [...keys.map(k => clean[k]), existing[0].id]
+        );
+        const [updated] = await pool.query(
+          'SELECT id, full_name, email, phone, status FROM instructors WHERE id=? LIMIT 1',
+          [existing[0].id]
+        );
+        return ok(updated[0], 'Profil berhasil diperbarui.');
+      }
+
+      return fail('Endpoint ini hanya untuk peserta dan instruktur.', 403);
+    }
+
+    return await generic(route, request, new URL(request.url).searchParams);
+  }
   catch (e) { return fail(e.message || 'Server error.', e.status || 500); }
 }
 export async function DELETE(request, context) {

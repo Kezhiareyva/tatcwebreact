@@ -32,8 +32,36 @@ const ParticipantSchedule = () => {
 
   if (!user?.profile) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-muted)' }}>Akun Anda belum terhubung dengan data profil peserta.</p>
+      <div style={{ padding: '2rem 1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+            <Link to="/portal/participant" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>
+              &larr; Kembali ke Dashboard
+            </Link>
+          </div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+            Jadwal Kelas Saya
+          </h1>
+        </div>
+
+        <div style={{
+          background: 'var(--surface-color)',
+          border: '1px dashed var(--border-color)',
+          borderRadius: '16px',
+          padding: '3rem 2rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⏳</div>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+            Profil Peserta Sedang Dipersiapkan
+          </h3>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '480px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: '1.5' }}>
+            Jadwal kelas akan muncul di sini setelah profil peserta Anda ditautkan oleh tim administrasi TATC.
+          </p>
+          <Link to="/portal/participant" className="btn btn-glass" style={{ padding: '8px 16px', borderRadius: '8px', textDecoration: 'none', fontSize: '0.85rem' }}>
+            Kembali ke Dashboard
+          </Link>
+        </div>
       </div>
     );
   }

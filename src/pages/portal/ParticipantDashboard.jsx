@@ -83,13 +83,50 @@ const ParticipantDashboard = () => {
 
   if (!user?.profile) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center' }}>
-        <div style={{ background: 'var(--surface-color)', maxWidth: '540px', margin: '0 auto', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-          <h2 style={{ color: '#ef4444', marginBottom: '1rem', fontSize: '1.4rem' }}>Profil Peserta Belum Ditemukan</h2>
-          <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-            Data profil peserta untuk akun Anda sedang dipersiapkan atau belum ditautkan.
+      <div style={{ padding: '2rem 1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
+        {/* Welcome Banner — generic, no profile data */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.75rem 2rem',
+          marginBottom: '2rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', background: 'rgba(220, 38, 38, 0.1)', color: 'var(--primary-color)', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+              <span>Portal Peserta TATC</span>
+            </div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+              Selamat datang!
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+              {user?.email}
+            </p>
+          </div>
+        </div>
+
+        {/* Pending notice — same visual style as the "no active programs" card */}
+        <div style={{
+          background: 'var(--surface-color)',
+          border: '1px dashed var(--border-color)',
+          borderRadius: '16px',
+          padding: '2.5rem 2rem',
+          textAlign: 'center',
+          marginBottom: '2rem'
+        }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⏳</div>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+            Profil Peserta Sedang Dipersiapkan
+          </h3>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '560px', margin: '0 auto 1.5rem auto', fontSize: '0.95rem', lineHeight: '1.6' }}>
+            Akun Anda sudah aktif, namun data profil peserta belum ditautkan oleh tim administrasi. Biasanya ini selesai dalam 1×24 jam setelah pendaftaran. Jika sudah lebih dari itu, silakan hubungi admin TATC.
           </p>
-          <button onClick={() => window.location.reload()} className="btn btn-primary" style={{ padding: '8px 20px', borderRadius: '8px' }}>
+          <button onClick={() => window.location.reload()} className="btn btn-primary" style={{ padding: '9px 22px', borderRadius: '8px', fontSize: '0.9rem' }}>
             Muat Ulang Halaman
           </button>
         </div>

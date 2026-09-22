@@ -43,6 +43,8 @@ import InstructorDashboard from './pages/portal/InstructorDashboard';
 import ManageAttendance from './pages/portal/ManageAttendance';
 import ManageMaterials from './pages/portal/ManageMaterials';
 import RegisterProgram from './pages/portal/RegisterProgram';
+import ParticipantProfile from './pages/portal/ParticipantProfile';
+import InstructorProfile from './pages/portal/InstructorProfile';
 
 // Phase 6
 import VerifyCertificate from './pages/VerifyCertificate';
@@ -98,12 +100,14 @@ function App() {
           {/* Participant Routes */}
           <Route path="participant" element={<ParticipantDashboard />} />
           <Route path="participant/schedule" element={<ParticipantSchedule />} />
+          <Route path="participant/profile" element={<ParticipantProfile />} />
           <Route path="register" element={<RegisterProgram />} />
           
           {/* Instructor Routes */}
           <Route path="instructor" element={<InstructorDashboard />} />
           <Route path="instructor/attendance" element={<ManageAttendance />} />
           <Route path="instructor/materials" element={<ManageMaterials />} />
+          <Route path="instructor/profile" element={<InstructorProfile />} />
         </Route>
         
         {/* Fallback route */}
