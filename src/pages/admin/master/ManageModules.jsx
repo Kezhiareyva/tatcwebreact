@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../../../lib/api';
 
 const ManageModules = () => {
@@ -103,6 +104,7 @@ const ManageModules = () => {
                     </span>
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    <Link to={`/admin/master/modules/${m.id}/topics`} style={{ color: '#0f766e', textDecoration: 'none', marginRight: '10px', fontWeight: 500 }}>Topik</Link>
                     <button onClick={() => openModal(m)} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', marginRight: '10px' }}>Edit</button>
                     <button onClick={() => handleDelete(m.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>Delete</button>
                   </td>

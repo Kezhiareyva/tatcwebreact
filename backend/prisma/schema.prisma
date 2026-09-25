@@ -25,6 +25,7 @@ model User {
   reset_token_expires_at    DateTime?                   @db.DateTime(0)
   recorded_attendances      Attendance[]
   audit_logs                AuditLog[]
+  bap                       bap[]
   import_logs               ImportLog[]
   instructors               Instructor[]
   notifications             Notification[]
@@ -94,6 +95,7 @@ model Participant {
   occupation                String?                     @db.VarChar(150)
   institution               String?                     @db.VarChar(255)
   attendances               Attendance[]
+  bap_attendance            bap_attendance[]
   batch_participants        BatchParticipant[]
   certificates              Certificate[]
   certification_results     CertificationResult[]
@@ -115,6 +117,7 @@ model Instructor {
   deleted_at          DateTime?           @db.DateTime(0)
   created_at          DateTime            @default(now()) @db.DateTime(0)
   updated_at          DateTime            @default(now()) @updatedAt @db.DateTime(0)
+  bap                 bap[]
   user                User?               @relation(fields: [user_id], references: [id], map: "fk_instructors_user")
   session_instructors SessionInstructor[]
 
@@ -152,6 +155,7 @@ model Module {
   deleted_at      DateTime?       @db.DateTime(0)
   created_at      DateTime        @default(now()) @db.DateTime(0)
   updated_at      DateTime        @default(now()) @updatedAt @db.DateTime(0)
+  module_topics   module_topics[]
   program_modules ProgramModule[]
   sessions        Session[]
 
@@ -233,16 +237,20 @@ model Session {
   status              String              @default("SCHEDULED") @db.VarChar(20)
   created_at          DateTime            @default(now()) @db.DateTime(0)
   updated_at          DateTime            @default(now()) @updatedAt @db.DateTime(0)
+  topic_id            BigInt?
   attendances         Attendance[]
+  bap                 bap[]
   session_instructors SessionInstructor[]
   batch               Batch               @relation(fields: [batch_id], references: [id], map: "fk_sessions_batch")
   module              Module?             @relation(fields: [module_id], references: [id], map: "fk_sessions_module")
   room                Room?               @relation(fields: [room_id], references: [id], map: "fk_sessions_room")
+  module_topics       module_topics?      @relation(fields: [topic_id], references: [id], onUpdate: Restrict, map: "fk_sessions_topic")
 
   @@index([session_date, start_time, end_time], map: "idx_sessions_schedule")
   @@index([batch_id], map: "fk_sessions_batch")
   @@index([module_id], map: "fk_sessions_module")
   @@index([room_id], map: "fk_sessions_room")
+  @@index([topic_id], map: "fk_sessions_topic")
   @@map("sessions")
 }
 
@@ -509,4 +517,66 @@ model program_form_fields {
   programs                 Program                    @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_program_form_fields_program")
 
   @@index([program_id], map: "fk_program_form_fields_program")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model bap {
+  id              BigInt           @id @default(autoincrement())
+  session_id      BigInt
+  instructor_id   BigInt
+  topic_id        BigInt?
+  teaching_date   DateTime         @db.Date
+  method          String           @default("ONSITE") @db.VarChar(30)
+  duration_hours  Decimal?         @default(2.0) @db.Decimal(4, 1)
+  location        String?          @db.VarChar(255)
+  notes           String?          @db.Text
+  status          String           @default("DRAFT") @db.VarChar(20)
+  submitted_at    DateTime?        @db.DateTime(0)
+  reviewed_by     BigInt?
+  reviewed_at     DateTime?        @db.DateTime(0)
+  review_notes    String?          @db.Text
+  sync_attendance Boolean          @default(false)
+  created_at      DateTime         @default(now()) @db.DateTime(0)
+  updated_at      DateTime         @default(now()) @db.DateTime(0)
+  instructors     Instructor       @relation(fields: [instructor_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_bap_instructor")
+  users           User?            @relation(fields: [reviewed_by], references: [id], onUpdate: Restrict, map: "fk_bap_reviewer")
+  sessions        Session          @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_bap_session")
+  module_topics   module_topics?   @relation(fields: [topic_id], references: [id], onUpdate: Restrict, map: "fk_bap_topic")
+  bap_attendance  bap_attendance[]
+
+  @@unique([session_id, instructor_id], map: "uq_bap_session_instructor")
+  @@index([instructor_id], map: "fk_bap_instructor")
+  @@index([reviewed_by], map: "fk_bap_reviewer")
+  @@index([topic_id], map: "fk_bap_topic")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model bap_attendance {
+  id             BigInt      @id @default(autoincrement())
+  bap_id         BigInt
+  participant_id BigInt
+  status         String      @default("PRESENT") @db.VarChar(20)
+  notes          String?     @db.VarChar(500)
+  bap            bap         @relation(fields: [bap_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_bap_att_bap")
+  participants   Participant @relation(fields: [participant_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_bap_att_participant")
+
+  @@unique([bap_id, participant_id], map: "uq_bap_attendance")
+  @@index([participant_id], map: "fk_bap_att_participant")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model module_topics {
+  id             BigInt    @id @default(autoincrement())
+  module_id      BigInt
+  title          String    @db.VarChar(255)
+  description    String?   @db.Text
+  sequence_no    Int       @default(1)
+  duration_hours Decimal?  @default(2.0) @db.Decimal(4, 1)
+  created_at     DateTime  @default(now()) @db.DateTime(0)
+  updated_at     DateTime  @default(now()) @db.DateTime(0)
+  bap            bap[]
+  modules        Module    @relation(fields: [module_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_module_topics_module")
+  sessions       Session[]
+
+  @@index([module_id], map: "fk_module_topics_module")
 }

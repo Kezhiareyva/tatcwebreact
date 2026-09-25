@@ -675,6 +675,165 @@ async function portal(route, request, params) {
     return ok([]);
   }
 
+  // ── Portal instruktur: daftar session eligible untuk BAP ────────────────
+  if (route === 'portal/instructor/bap') {
+    if (normalizeRole(session.role) !== 'INSTRUKTUR') return fail('Akses ditolak.', 403);
+    const user = await findUserByEmail(session.email);
+    const profile = user ? await profileFor(user) : null;
+    if (!profile) return fail('Profil instruktur tidak ditemukan.', 404);
+    const instructorId = profile.id;
+
+    // Sessions yang di-assign ke instruktur ini, eligible H-1 s/d H+1
+    const [eligibleSessions] = await pool.query(
+      `SELECT s.id, s.title, s.session_date, s.start_time, s.end_time, s.status,
+              bt.name batch_name, bt.id batch_id,
+              p.name program_name,
+              m.name module_name, m.id module_id,
+              mt.title topic_title, mt.sequence_no topic_sequence, mt.id topic_id,
+              r.name room_name,
+              bap.id bap_id, bap.status bap_status
+       FROM session_instructors si
+       JOIN sessions s ON s.id = si.session_id
+       JOIN batches bt ON bt.id = s.batch_id
+       JOIN programs p ON p.id = bt.program_id
+       LEFT JOIN modules m ON m.id = s.module_id
+       LEFT JOIN module_topics mt ON mt.id = s.topic_id
+       LEFT JOIN rooms r ON r.id = s.room_id
+       LEFT JOIN bap ON bap.session_id = s.id AND bap.instructor_id = ?
+       WHERE si.instructor_id = ?
+         AND s.session_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                                AND DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+       ORDER BY s.session_date DESC, s.start_time`,
+      [instructorId, instructorId]
+    ).catch(() => [[]]);
+
+    // All BAP history for this instructor
+    const [history] = await pool.query(
+      `SELECT b.id, b.status, b.teaching_date, b.method, b.submitted_at, b.review_notes,
+              s.title session_title, s.session_date,
+              bt.name batch_name, p.name program_name,
+              mt.title topic_title, mt.sequence_no topic_sequence
+       FROM bap b
+       JOIN sessions s ON s.id = b.session_id
+       JOIN batches bt ON bt.id = s.batch_id
+       JOIN programs p ON p.id = bt.program_id
+       LEFT JOIN module_topics mt ON mt.id = b.topic_id
+       WHERE b.instructor_id = ?
+       ORDER BY b.teaching_date DESC LIMIT 30`,
+      [instructorId]
+    ).catch(() => [[]]);
+
+    return ok({ eligible_sessions: eligibleSessions, history });
+  }
+
+  // ── Portal instruktur: GET detail BAP milik instruktur ──────────────────
+  if (route.match(/^portal\/instructor\/bap\/\d+$/)) {
+    if (normalizeRole(session.role) !== 'INSTRUKTUR') return fail('Akses ditolak.', 403);
+    const user = await findUserByEmail(session.email);
+    const profile = user ? await profileFor(user) : null;
+    if (!profile) return fail('Profil instruktur tidak ditemukan.', 404);
+
+    const bapId = Number(route.split('/')[3]);
+    const [rows] = await pool.query(
+      `SELECT b.*,
+              i.full_name instructor_name,
+              s.title session_title, s.session_date, s.start_time, s.end_time,
+              bt.name batch_name, bt.id batch_id,
+              p.name program_name,
+              m.name module_name,
+              mt.title topic_title, mt.sequence_no topic_sequence,
+              r.name room_name
+       FROM bap b
+       JOIN instructors i ON i.id = b.instructor_id
+       JOIN sessions s ON s.id = b.session_id
+       JOIN batches bt ON bt.id = s.batch_id
+       JOIN programs p ON p.id = bt.program_id
+       LEFT JOIN modules m ON m.id = s.module_id
+       LEFT JOIN module_topics mt ON mt.id = b.topic_id
+       LEFT JOIN rooms r ON r.id = s.room_id
+       WHERE b.id = ? AND b.instructor_id = ? LIMIT 1`,
+      [bapId, profile.id]
+    );
+    if (!rows[0]) return fail('BAP tidak ditemukan.', 404);
+    const [att] = await pool.query(
+      `SELECT ba.*, p.full_name, p.participant_number
+       FROM bap_attendance ba JOIN participants p ON p.id = ba.participant_id
+       WHERE ba.bap_id = ? ORDER BY p.full_name`, [bapId]
+    );
+    return ok({ ...rows[0], attendance: att });
+  }
+
+  // ── Portal instruktur: generate form BAP dari session_id ────────────────
+  if (route.match(/^portal\/instructor\/bap\/session\/\d+$/)) {
+    if (normalizeRole(session.role) !== 'INSTRUKTUR') return fail('Akses ditolak.', 403);
+    const user = await findUserByEmail(session.email);
+    const profile = user ? await profileFor(user) : null;
+    if (!profile) return fail('Profil instruktur tidak ditemukan.', 404);
+
+    const sessionId = Number(route.split('/')[4]);
+    // Validate session belongs to instructor
+    const [siRows] = await pool.query(
+      `SELECT si.session_id FROM session_instructors si WHERE si.session_id = ? AND si.instructor_id = ? LIMIT 1`,
+      [sessionId, profile.id]
+    );
+    if (!siRows[0]) return fail('Anda tidak ditugaskan di sesi ini.', 403);
+
+    // Validate date window (H-1 s/d H+1)
+    const [sRows] = await pool.query(
+      `SELECT s.*, bt.name batch_name, bt.id batch_id, p.name program_name,
+              m.name module_name, m.id module_id,
+              mt.title topic_title, mt.id topic_id, mt.sequence_no topic_sequence, mt.duration_hours,
+              r.name room_name
+       FROM sessions s
+       JOIN batches bt ON bt.id = s.batch_id
+       JOIN programs p ON p.id = bt.program_id
+       LEFT JOIN modules m ON m.id = s.module_id
+       LEFT JOIN module_topics mt ON mt.id = s.topic_id
+       LEFT JOIN rooms r ON r.id = s.room_id
+       WHERE s.id = ? LIMIT 1`, [sessionId]
+    );
+    if (!sRows[0]) return fail('Sesi tidak ditemukan.', 404);
+    const sess = sRows[0];
+    const sessionDate = new Date(sess.session_date);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diffDays = Math.round((sessionDate - today) / 86400000);
+    if (diffDays < -1 || diffDays > 1) return fail('BAP hanya dapat dibuat di H-1, hari-H, atau H+1 kelas.', 422);
+
+    // Check existing BAP
+    const [existBap] = await pool.query(
+      `SELECT b.*, ba.participant_id, ba.status attendance_status, ba.notes attendance_notes
+       FROM bap b
+       LEFT JOIN bap_attendance ba ON ba.bap_id = b.id
+       WHERE b.session_id = ? AND b.instructor_id = ?`,
+      [sessionId, profile.id]
+    );
+    const existingBap = existBap[0]
+      ? {
+          ...existBap[0],
+          attendance: existBap.filter(row => row.participant_id).map(row => ({
+            participant_id: row.participant_id,
+            status: row.attendance_status,
+            notes: row.attendance_notes,
+          })),
+        }
+      : null;
+
+    // Participants from batch
+    const [participants] = await pool.query(
+      `SELECT bp.participant_id, p.full_name, p.participant_number
+       FROM batch_participants bp JOIN participants p ON p.id = bp.participant_id
+       WHERE bp.batch_id = ? AND p.deleted_at IS NULL ORDER BY p.full_name`,
+      [sess.batch_id]
+    );
+
+    return ok({
+      session: sess,
+      instructor: { id: profile.id, full_name: profile.full_name },
+      participants,
+      existing_bap: existingBap,
+    });
+  }
+
   if (route === 'portal/profile') {
     const role = normalizeRole(session.role);
     if (role === 'PESERTA') {
@@ -742,6 +901,189 @@ export async function GET(request, context) {
       const [rows] = await pool.query('SELECT * FROM program_form_fields WHERE program_id=? ORDER BY order_index', [programId]).catch(() => [[]]);
       return ok(rows);
     }
+    if (route.match(/^admin\/participants\/\d+$/)) {
+      await requireAuth(ADMIN_ROLES);
+      const participantId = Number(route.split('/')[2]);
+      const pool = connection();
+
+      // Base profile — with fallback if new columns not yet migrated
+      let profileRows;
+      try {
+        [profileRows] = await pool.query(
+          `SELECT id, participant_number, full_name, nik, birth_place, birth_date, gender,
+                  marital_status, phone, email, address, occupation, institution, status,
+                  created_at, updated_at
+           FROM participants WHERE id = ? AND deleted_at IS NULL LIMIT 1`,
+          [participantId]
+        );
+      } catch {
+        [profileRows] = await pool.query(
+          `SELECT id, participant_number, full_name, birth_place, birth_date, gender,
+                  marital_status, phone, email, address, status, created_at, updated_at
+           FROM participants WHERE id = ? AND deleted_at IS NULL LIMIT 1`,
+          [participantId]
+        );
+      }
+      if (!profileRows[0]) return fail('Peserta tidak ditemukan.', 404);
+
+      // Batches enrolled
+      const [batches] = await pool.query(
+        `SELECT bp.status enroll_status, bp.enrolled_at,
+                b.id batch_id, b.code batch_code, b.name batch_name, b.start_date, b.end_date, b.status batch_status,
+                p.id program_id, p.name program_name, p.code program_code
+         FROM batch_participants bp
+         JOIN batches b ON b.id = bp.batch_id
+         JOIN programs p ON p.id = b.program_id
+         WHERE bp.participant_id = ? AND b.deleted_at IS NULL
+         ORDER BY b.start_date DESC`,
+        [participantId]
+      ).catch(() => [[]]);
+
+      // Attendance summary
+      const [attStats] = await pool.query(
+        `SELECT status, COUNT(*) total FROM attendance WHERE participant_id = ? GROUP BY status`,
+        [participantId]
+      ).catch(() => [[]]);
+      const attendance_stats = Object.fromEntries(attStats.map(r => [r.status, Number(r.total)]));
+      const totalSessions = Object.values(attendance_stats).reduce((s, v) => s + v, 0);
+
+      // Recent attendance (last 20)
+      const [attendanceRows] = await pool.query(
+        `SELECT a.status, a.recorded_at, s.title session_title, s.session_date,
+                b.name batch_name, m.name module_name
+         FROM attendance a
+         JOIN sessions s ON s.id = a.session_id
+         JOIN batches b ON b.id = s.batch_id
+         LEFT JOIN modules m ON m.id = s.module_id
+         WHERE a.participant_id = ?
+         ORDER BY s.session_date DESC LIMIT 20`,
+        [participantId]
+      ).catch(() => [[]]);
+
+      // Exam results
+      const [examRows] = await pool.query(
+        `SELECT er.score, er.status, er.exam_date, er.notes,
+                e.name exam_name, e.type exam_type
+         FROM exam_results er
+         JOIN exams e ON e.id = er.exam_id
+         WHERE er.participant_id = ?
+         ORDER BY er.exam_date DESC`,
+        [participantId]
+      ).catch(() => [[]]);
+
+      // Certificates
+      const [certRows] = await pool.query(
+        `SELECT id, certificate_number, verification_code, issue_date, expiry_date, status
+         FROM certificates WHERE participant_id = ? ORDER BY issue_date DESC`,
+        [participantId]
+      ).catch(() => [[]]);
+
+      // Registrations
+      const [regRows] = await pool.query(
+        `SELECT pr.id, pr.status, pr.total_amount, pr.submitted_at, pr.reviewed_at, pr.notes,
+                b.name batch_name, prog.name program_name
+         FROM participant_registrations pr
+         JOIN batches b ON b.id = pr.batch_id
+         JOIN programs prog ON prog.id = b.program_id
+         WHERE pr.participant_id = ? ORDER BY pr.submitted_at DESC`,
+        [participantId]
+      ).catch(() => [[]]);
+
+      return ok({
+        profile: profileRows[0],
+        batches,
+        attendance_stats,
+        total_sessions: totalSessions,
+        recent_attendance: attendanceRows,
+        exam_results: examRows,
+        certificates: certRows,
+        registrations: regRows,
+      });
+    }
+
+    // ── module_topics: GET list atau single ──────────────────────────────────
+    if (route === 'module_topics') {
+      await requireAuth(ADMIN_ROLES);
+      const pool = connection();
+      const moduleId = params.get('module_id');
+      if (moduleId) {
+        const [rows] = await pool.query(
+          `SELECT mt.*, m.name module_name FROM module_topics mt JOIN modules m ON m.id = mt.module_id
+           WHERE mt.module_id = ? ORDER BY mt.sequence_no ASC`,
+          [moduleId]
+        );
+        return ok(rows);
+      }
+      if (id) {
+        const [rows] = await pool.query(`SELECT * FROM module_topics WHERE id = ? LIMIT 1`, [id]);
+        return rows[0] ? ok(rows[0]) : fail('Topik tidak ditemukan.', 404);
+      }
+      const [rows] = await pool.query(`SELECT mt.*, m.name module_name FROM module_topics mt JOIN modules m ON m.id = mt.module_id ORDER BY m.name, mt.sequence_no`);
+      return ok(rows);
+    }
+
+    // ── BAP: GET list (admin) ────────────────────────────────────────────────
+    if (route === 'bap') {
+      await requireAuth(ADMIN_ROLES);
+      const pool = connection();
+      if (id) {
+        const [rows] = await pool.query(
+          `SELECT b.*,
+                  i.full_name instructor_name,
+                  s.title session_title, s.session_date, s.start_time, s.end_time,
+                  bt.name batch_name, bt.code batch_code,
+                  p.name program_name,
+                  m.name module_name,
+                  mt.title topic_title, mt.sequence_no topic_sequence,
+                  r.name room_name,
+                  u.name reviewer_name
+           FROM bap b
+           JOIN instructors i ON i.id = b.instructor_id
+           JOIN sessions s ON s.id = b.session_id
+           JOIN batches bt ON bt.id = s.batch_id
+           JOIN programs p ON p.id = bt.program_id
+           LEFT JOIN modules m ON m.id = s.module_id
+           LEFT JOIN module_topics mt ON mt.id = b.topic_id
+           LEFT JOIN rooms r ON r.id = s.room_id
+           LEFT JOIN users u ON u.id = b.reviewed_by
+           WHERE b.id = ? LIMIT 1`, [id]
+        );
+        if (!rows[0]) return fail('BAP tidak ditemukan.', 404);
+        // fetch bap_attendance
+        const [att] = await pool.query(
+          `SELECT ba.*, p.full_name, p.participant_number
+           FROM bap_attendance ba JOIN participants p ON p.id = ba.participant_id
+           WHERE ba.bap_id = ? ORDER BY p.full_name`, [id]
+        );
+        return ok({ ...rows[0], attendance: att });
+      }
+      // list with filters
+      const statusF   = params.get('status');
+      const batchF    = params.get('batch_id');
+      const instrF    = params.get('instructor_id');
+      const where = ['1=1'];
+      const vals  = [];
+      if (statusF) { where.push('b.status = ?'); vals.push(statusF); }
+      if (batchF)  { where.push('s.batch_id = ?'); vals.push(batchF); }
+      if (instrF)  { where.push('b.instructor_id = ?'); vals.push(instrF); }
+      const [rows] = await pool.query(
+        `SELECT b.id, b.status, b.teaching_date, b.method, b.submitted_at, b.sync_attendance,
+                i.full_name instructor_name,
+                s.title session_title, s.session_date,
+                bt.name batch_name, p.name program_name,
+                mt.title topic_title, mt.sequence_no topic_sequence
+         FROM bap b
+         JOIN instructors i ON i.id = b.instructor_id
+         JOIN sessions s ON s.id = b.session_id
+         JOIN batches bt ON bt.id = s.batch_id
+         JOIN programs p ON p.id = bt.program_id
+         LEFT JOIN module_topics mt ON mt.id = b.topic_id
+         WHERE ${where.join(' AND ')}
+         ORDER BY b.teaching_date DESC, b.submitted_at DESC`, vals
+      );
+      return ok(rows);
+    }
+
     if (route === 'admin/registrations') {
       await requireAuth(ADMIN_ROLES);
       const pool = connection();
@@ -930,6 +1272,86 @@ export async function POST(request, context) {
       return ok(rows);
     }
 
+    // ── module_topics POST (admin) ───────────────────────────────────────────
+    if (route === 'module_topics') {
+      await requireAuth(ADMIN_ROLES);
+      const pool = connection();
+      const data = await body(request);
+      const { module_id, title, description, sequence_no, duration_hours } = data;
+      if (!module_id || !title) return fail('module_id dan title wajib diisi.', 422);
+      const [r] = await pool.query(
+        `INSERT INTO module_topics (module_id, title, description, sequence_no, duration_hours) VALUES (?,?,?,?,?)`,
+        [module_id, title, description || null, sequence_no || 1, duration_hours || 2.0]
+      );
+      return ok({ id: r.insertId }, 'Topik berhasil dibuat.');
+    }
+
+    // ── BAP POST (instruktur — buat / update draft + submit) ────────────────
+    if (route === 'portal/instructor/bap') {
+      if (normalizeRole(session.role) !== 'INSTRUKTUR') return fail('Akses ditolak.', 403);
+      const user = await findUserByEmail(session.email);
+      const profile = user ? await profileFor(user) : null;
+      if (!profile) return fail('Profil instruktur tidak ditemukan.', 404);
+
+      const pool = connection();
+      const data = await body(request);
+      const { session_id, method, duration_hours, location, notes, attendance, action } = data;
+      // action: 'save_draft' | 'submit'
+
+      if (!session_id) return fail('session_id wajib diisi.', 422);
+
+      // Validate assignment
+      const [siRows] = await pool.query(
+        `SELECT session_id FROM session_instructors WHERE session_id = ? AND instructor_id = ? LIMIT 1`,
+        [session_id, profile.id]
+      );
+      if (!siRows[0]) return fail('Anda tidak ditugaskan di sesi ini.', 403);
+
+      // Validate date window
+      const [sRows] = await pool.query(`SELECT session_date, topic_id FROM sessions WHERE id = ? LIMIT 1`, [session_id]);
+      if (!sRows[0]) return fail('Sesi tidak ditemukan.', 404);
+      const sessionDate = new Date(sRows[0].session_date);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const diffDays = Math.round((sessionDate - today) / 86400000);
+      if (diffDays < -1 || diffDays > 1) return fail('BAP hanya dapat dibuat di H-1, hari-H, atau H+1 kelas.', 422);
+
+      const topicId = sRows[0].topic_id || null;
+      const teachingDate = sessionDate.toISOString().split('T')[0];
+      const newStatus = action === 'submit' ? 'SUBMITTED' : 'DRAFT';
+      const submittedAt = action === 'submit' ? new Date().toISOString().slice(0,19).replace('T',' ') : null;
+
+      // Upsert BAP
+      const [existing] = await pool.query(`SELECT id, status FROM bap WHERE session_id = ? AND instructor_id = ? LIMIT 1`, [session_id, profile.id]);
+      let bapId;
+      if (existing[0]) {
+        if (existing[0].status === 'SUBMITTED' || existing[0].status === 'APPROVED' || existing[0].status === 'REJECTED') return fail('BAP ini sudah diproses dan tidak dapat diubah.', 422);
+        bapId = existing[0].id;
+        await pool.query(
+          `UPDATE bap SET topic_id=?, teaching_date=?, method=?, duration_hours=?, location=?, notes=?, status=?, submitted_at=COALESCE(?,submitted_at), reviewed_by=CASE WHEN ? = 'SUBMITTED' THEN NULL ELSE reviewed_by END, reviewed_at=CASE WHEN ? = 'SUBMITTED' THEN NULL ELSE reviewed_at END, review_notes=CASE WHEN ? = 'SUBMITTED' THEN NULL ELSE review_notes END, updated_at=NOW() WHERE id=?`,
+          [topicId, teachingDate, method||'ONSITE', duration_hours||2.0, location||null, notes||null, newStatus, submittedAt, newStatus, newStatus, newStatus, bapId]
+        );
+      } else {
+        const [r] = await pool.query(
+          `INSERT INTO bap (session_id, instructor_id, topic_id, teaching_date, method, duration_hours, location, notes, status, submitted_at) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+          [session_id, profile.id, topicId, teachingDate, method||'ONSITE', duration_hours||2.0, location||null, notes||null, newStatus, submittedAt]
+        );
+        bapId = r.insertId;
+      }
+
+      // Upsert attendance
+      if (Array.isArray(attendance)) {
+        for (const a of attendance) {
+          await pool.query(
+            `INSERT INTO bap_attendance (bap_id, participant_id, status, notes) VALUES (?,?,?,?)
+             ON DUPLICATE KEY UPDATE status=VALUES(status), notes=VALUES(notes)`,
+            [bapId, a.participant_id, a.status || 'PRESENT', a.notes || null]
+          );
+        }
+      }
+
+      return ok({ id: bapId }, action === 'submit' ? 'BAP berhasil disubmit.' : 'Draft BAP tersimpan.');
+    }
+
     return await generic(route, request, new URL(request.url).searchParams);
   } catch (e) { return fail(e.message || 'Server error.', e.status || 500); }
 }
@@ -938,6 +1360,72 @@ export async function PUT(request, context) {
   try {
     const { path = [] } = await context.params;
     const route = path.join('/');
+    const params = new URL(request.url).searchParams;
+
+    // ── module_topics PUT (admin) ────────────────────────────────────────────
+    if (route === 'module_topics') {
+      await requireAuth(ADMIN_ROLES);
+      const pool = connection();
+      const data = await body(request);
+      const targetId = params.get('id') || data.id;
+      if (!targetId) return fail('ID wajib diisi.', 422);
+      const allowed = { title: data.title, description: data.description, sequence_no: data.sequence_no, duration_hours: data.duration_hours };
+      const clean = Object.fromEntries(Object.entries(allowed).filter(([,v]) => v !== undefined));
+      if (!Object.keys(clean).length) return fail('Tidak ada field yang diperbarui.', 422);
+      const keys = Object.keys(clean);
+      await pool.query(`UPDATE module_topics SET ${keys.map(k=>`\`${k}\`=?`).join(',')} WHERE id=?`, [...keys.map(k=>clean[k]), targetId]);
+      return ok({ id: targetId }, 'Topik berhasil diperbarui.');
+    }
+
+    // ── BAP PUT — admin approve, reject, or request revision ────────────────
+    if (route.match(/^bap\/\d+$/)) {
+      await requireAuth(ADMIN_ROLES);
+      const adminSession = await getSession();
+      const bapId = Number(route.split('/')[1]);
+      const pool = connection();
+      const data = await body(request);
+      const { action, review_notes, sync_attendance } = data;
+
+      const [bapRows] = await pool.query(`SELECT * FROM bap WHERE id = ? LIMIT 1`, [bapId]);
+      if (!bapRows[0]) return fail('BAP tidak ditemukan.', 404);
+      const bap = bapRows[0];
+
+      if (action === 'approve' || action === 'reject' || action === 'request_revision') {
+        if (bap.status !== 'SUBMITTED') return fail('Hanya BAP yang menunggu review yang dapat diproses.', 422);
+        if ((action === 'reject' || action === 'request_revision') && !String(review_notes || '').trim()) {
+          return fail('Catatan Admin wajib diisi untuk penolakan atau permintaan revisi.', 422);
+        }
+        const newStatus = action === 'approve'
+          ? 'APPROVED'
+          : action === 'reject'
+            ? 'REJECTED'
+            : 'REVISION_REQUESTED';
+        await pool.query(
+          `UPDATE bap SET status=?, reviewed_by=?, reviewed_at=NOW(), review_notes=? WHERE id=?`,
+          [newStatus, adminSession.id, review_notes || null, bapId]
+        );
+
+        // If approved + sync requested → write to attendance table
+        if (action === 'approve' && sync_attendance) {
+          const [attRows] = await pool.query(`SELECT * FROM bap_attendance WHERE bap_id = ?`, [bapId]);
+          for (const a of attRows) {
+            await pool.query(
+              `INSERT INTO attendance (session_id, participant_id, status, notes, recorded_by, recorded_at)
+               VALUES (?,?,?,?,?,NOW())
+               ON DUPLICATE KEY UPDATE status=VALUES(status), notes=VALUES(notes), recorded_by=VALUES(recorded_by), recorded_at=NOW()`,
+              [bap.session_id, a.participant_id, a.status, a.notes || null, adminSession.id]
+            );
+          }
+          await pool.query(`UPDATE bap SET sync_attendance=1 WHERE id=?`, [bapId]);
+        }
+        return ok(null, action === 'approve'
+          ? 'BAP disetujui.'
+          : action === 'reject'
+            ? 'BAP ditolak.'
+            : 'BAP dikembalikan ke instruktur untuk direvisi.');
+      }
+      return fail('Action tidak dikenali.', 422);
+    }
 
     if (route === 'portal/profile') {
       const session = await getSession();

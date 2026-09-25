@@ -23,10 +23,12 @@ import ManagePrograms from './pages/admin/master/ManagePrograms';
 import ManageProgramForm from './pages/admin/master/ManageProgramForm';
 import RegistrationVerification from './pages/admin/RegistrationVerification';
 import ManageModules from './pages/admin/master/ManageModules';
+import ManageModuleTopics from './pages/admin/master/ManageModuleTopics';
 import ManageInstructors from './pages/admin/master/ManageInstructors';
 import ManageRooms from './pages/admin/master/ManageRooms';
 import ManageUsers from './pages/admin/system/ManageUsers';
 import NotificationQueue from './pages/admin/system/NotificationQueue';
+import ParticipantDetail from './pages/admin/ParticipantDetail';
 import ManageBatches from './pages/admin/academic/ManageBatches';
 import ManageSessions from './pages/admin/academic/ManageSessions';
 import ManageBanners from './pages/admin/cms/ManageBanners';
@@ -51,6 +53,8 @@ import VerifyCertificate from './pages/VerifyCertificate';
 import ManageExams from './pages/admin/academic/ManageExams';
 import InputGrades from './pages/admin/academic/InputGrades';
 import ManageCertificates from './pages/admin/academic/ManageCertificates';
+import ManageBAP from './pages/admin/academic/ManageBAP';
+import InstructorBAP from './pages/portal/InstructorBAP';
 
 // Phase 7
 
@@ -76,14 +80,17 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="participants" element={<ParticipantsList />} />
+            <Route path="participants/:id" element={<ParticipantDetail />} />
             <Route path="registrations" element={<RegistrationVerification />} />
             <Route path="master/programs" element={<ManagePrograms />} />
             <Route path="master/programs/:id/form" element={<ManageProgramForm />} />
             <Route path="master/modules" element={<ManageModules />} />
+            <Route path="master/modules/:moduleId/topics" element={<ManageModuleTopics />} />
             <Route path="master/instructors" element={<ManageInstructors />} />
             <Route path="master/rooms" element={<ManageRooms />} />
             <Route path="academic/batches" element={<ManageBatches />} />
             <Route path="academic/sessions" element={<ManageSessions />} />
+            <Route path="academic/bap" element={<ManageBAP />} />
             <Route path="academic/exams" element={<ManageExams />} />
             <Route path="academic/grades" element={<InputGrades />} />
             <Route path="academic/certificates" element={<ManageCertificates />} />
@@ -107,6 +114,7 @@ function App() {
           <Route path="instructor" element={<InstructorDashboard />} />
           <Route path="instructor/attendance" element={<ManageAttendance />} />
           <Route path="instructor/materials" element={<ManageMaterials />} />
+          <Route path="instructor/bap" element={<InstructorBAP />} />
           <Route path="instructor/profile" element={<InstructorProfile />} />
         </Route>
         

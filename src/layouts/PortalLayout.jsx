@@ -19,6 +19,7 @@ const PortalLayout = () => {
 
   const menuItems = isInstructor ? [
     { name: 'Dashboard',         path: '/portal/instructor',           icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+    { name: 'Berita Acara (BAP)', path: '/portal/instructor/bap',       icon: 'M9 12h6 M9 16h6 M4 4v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6a2 2 0 0 0-2 2z' },
     { name: 'Manage Attendance', path: '/portal/instructor/attendance', icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8' },
     { name: 'Profil Saya',       path: '/portal/instructor/profile',   icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z' },
   ] : [

@@ -7,9 +7,10 @@ const ManageSessions = () => {
   const [modules, setModules] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [topics, setTopics] = useState([]); // topik sesuai modul yang dipilih
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ id: '', batch_id: '', module_id: '', room_id: '', title: '', session_date: '', start_time: '', end_time: '', status: 'SCHEDULED', instructors: [] });
+  const [formData, setFormData] = useState({ id: '', batch_id: '', module_id: '', topic_id: '', room_id: '', title: '', session_date: '', start_time: '', end_time: '', status: 'SCHEDULED', instructors: [] });
   const [message, setMessage] = useState('');
 
   const fetchSessions = async () => {
@@ -90,11 +91,29 @@ const ManageSessions = () => {
   const openModal = (item = null) => {
     if (item) {
       setFormData({ ...item, instructors: item.instructors || [] });
+      // load topics for existing module
+      if (item.module_id) fetchTopics(item.module_id);
     } else {
-      setFormData({ id: '', batch_id: batches.length > 0 ? batches[0].id : '', module_id: '', room_id: '', title: '', session_date: '', start_time: '', end_time: '', status: 'SCHEDULED', instructors: [] });
+      setFormData({ id: '', batch_id: batches.length > 0 ? batches[0].id : '', module_id: '', topic_id: '', room_id: '', title: '', session_date: '', start_time: '', end_time: '', status: 'SCHEDULED', instructors: [] });
+      setTopics([]);
     }
     setMessage('');
     setIsModalOpen(true);
+  };
+
+  const fetchTopics = async (moduleId) => {
+    if (!moduleId) { setTopics([]); return; }
+    try {
+      const res = await apiFetch(`/api/module_topics?module_id=${moduleId}`);
+      const json = await res.json();
+      if (json.success) setTopics(json.data);
+      else setTopics([]);
+    } catch { setTopics([]); }
+  };
+
+  const handleModuleChange = (moduleId) => {
+    setFormData(f => ({ ...f, module_id: moduleId, topic_id: '' }));
+    fetchTopics(moduleId);
   };
 
   return (
@@ -173,12 +192,34 @@ const ManageSessions = () => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Module (Optional)</label>
-                  <select value={formData.module_id || ''} onChange={e => setFormData({ ...formData, module_id: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                  <select value={formData.module_id || ''} onChange={e => handleModuleChange(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
                     <option value="">No Module</option>
                     {modules.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
               </div>
+
+              {/* Topic dropdown — muncul hanya jika modul dipilih dan ada topik */}
+              {formData.module_id && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                    Topik / Pertemuan
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: '6px' }}>
+                      (Optional — sesuai topik yang diajarkan)
+                    </span>
+                  </label>
+                  {topics.length === 0 ? (
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', padding: '8px 0' }}>
+                      Modul ini belum memiliki topik. <a href="/admin/master/modules" style={{ color: 'var(--primary-color)' }}>Tambah topik</a>
+                    </div>
+                  ) : (
+                    <select value={formData.topic_id || ''} onChange={e => setFormData({ ...formData, topic_id: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }}>
+                      <option value="">— Pilih Topik —</option>
+                      {topics.map(t => <option key={t.id} value={t.id}>Pertemuan {t.sequence_no}: {t.title}</option>)}
+                    </select>
+                  )}
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>

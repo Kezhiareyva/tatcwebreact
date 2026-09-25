@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 
 const ParticipantsList = () => {
@@ -229,6 +230,12 @@ const ParticipantsList = () => {
                         </span>
                       </td>
                       <td className="table-actions">
+                        <Link
+                          to={`/admin/participants/${p.id}`}
+                          style={{ background: 'transparent', border: 'none', color: '#8b5cf6', cursor: 'pointer', marginRight: '10px', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '500' }}
+                        >
+                          Detail
+                        </Link>
                         <button onClick={() => openModal(p)} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', marginRight: '10px' }}>Edit</button>
                         <button onClick={() => handleDelete(p.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>Delete</button>
                       </td>
