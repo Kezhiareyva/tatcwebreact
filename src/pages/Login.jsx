@@ -6,6 +6,7 @@ import { apiFetch } from '../lib/api';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
@@ -105,7 +106,12 @@ function Login() {
                 <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Password</label>
                 <Link to="/forgot-password" style={{ color: 'var(--primary-color)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: '500' }}>Lupa Sandi?</Link>
               </div>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', outline: 'none' }} />
+              <div style={{ position: 'relative' }}>
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', padding: '12px 74px 12px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', outline: 'none' }} />
+                <button type="button" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'} aria-pressed={showPassword} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600', padding: '4px' }}>
+                  {showPassword ? 'Sembunyikan' : 'Lihat'}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '0.5rem', padding: '14px', width: '100%', fontSize: '1rem', fontWeight: '600' }}>
