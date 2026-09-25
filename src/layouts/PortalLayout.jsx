@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext';
 
 
 const PortalLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
+  if (loading) return <div className="app-loading"><div className="spinner" /><span>Memeriksa sesi…</span></div>;
   if (!user || (user.role !== 'PESERTA' && user.role !== 'INSTRUKTUR')) {
     return <Navigate to="/login" replace />;
   }
