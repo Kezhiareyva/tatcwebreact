@@ -94,7 +94,7 @@ function Home() {
             </h1>
 
             <p className="hero-subtitle animate-fade-in-up delay-200">
-              {banners.length > 0 ? banners[0].subtitle : 'Category C IERA (Radio, Instrument, Electrical) Approved AMTO No.147D-19'}
+              {banners[0]?.subtitle?.trim() || 'Category C IERA (Radio, Instrument, Electrical) Approved AMTO No.147D-19'}
             </p>
 
             <div className="animate-fade-in-up delay-300" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2.5rem' }}>
