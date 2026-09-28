@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+
 import { apiFetch } from '../../lib/api';
+import { formatDate, formatTime } from '../../utils/formatters';
 
 const ManageMaterials = () => {
   const { user } = useAuth();
@@ -128,7 +130,7 @@ const ManageMaterials = () => {
           <option value="">-- Select a Session --</option>
           {sessions.map(s => (
             <option key={s.id} value={s.id}>
-              {s.session_date} | {s.start_time}-{s.end_time} | {s.title} ({s.batch_name})
+              {formatDate(s.session_date)} | {formatTime(s.start_time)}-{formatTime(s.end_time)} | {s.title} ({s.batch_name})
             </option>
           ))}
         </select>

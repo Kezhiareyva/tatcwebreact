@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../../lib/api';
-
+import { formatDate } from '../../../utils/formatters';
 const ManageBatches = () => {
   const [batches, setBatches] = useState([]);
   const [programs, setPrograms] = useState([]);
@@ -111,8 +111,8 @@ const ManageBatches = () => {
                   <td style={{ padding: '1rem' }}>{m.name}</td>
                   <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{m.program_name}</td>
                   <td style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.85rem' }}>Start: {m.start_date || '-'}</div>
-                    <div style={{ fontSize: '0.85rem' }}>End: {m.end_date || '-'}</div>
+                    <div style={{ fontSize: '0.85rem' }}>Start: {formatDate(m.start_date)}</div>
+                    <div style={{ fontSize: '0.85rem' }}>End: {formatDate(m.end_date)}</div>
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', background: m.status === 'ACTIVE' ? '#dcfce7' : (m.status === 'COMPLETED' ? '#e0e7ff' : '#fee2e2'), color: m.status === 'ACTIVE' ? '#166534' : (m.status === 'COMPLETED' ? '#3730a3' : '#991b1b') }}>

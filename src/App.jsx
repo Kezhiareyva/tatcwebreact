@@ -25,6 +25,7 @@ import RegistrationVerification from './pages/admin/RegistrationVerification';
 import ManageModules from './pages/admin/master/ManageModules';
 import ManageModuleTopics from './pages/admin/master/ManageModuleTopics';
 import ManageInstructors from './pages/admin/master/ManageInstructors';
+import InstructorDetail from './pages/admin/master/InstructorDetail';
 import ManageRooms from './pages/admin/master/ManageRooms';
 import ManageUsers from './pages/admin/system/ManageUsers';
 import NotificationQueue from './pages/admin/system/NotificationQueue';
@@ -42,7 +43,6 @@ import PortalLayout from './layouts/PortalLayout';
 import ParticipantDashboard from './pages/portal/ParticipantDashboard';
 import ParticipantSchedule from './pages/portal/ParticipantSchedule';
 import InstructorDashboard from './pages/portal/InstructorDashboard';
-import ManageAttendance from './pages/portal/ManageAttendance';
 import ManageMaterials from './pages/portal/ManageMaterials';
 import RegisterProgram from './pages/portal/RegisterProgram';
 import ParticipantProfile from './pages/portal/ParticipantProfile';
@@ -87,6 +87,7 @@ function App() {
             <Route path="master/modules" element={<ManageModules />} />
             <Route path="master/modules/:moduleId/topics" element={<ManageModuleTopics />} />
             <Route path="master/instructors" element={<ManageInstructors />} />
+            <Route path="master/instructors/:id" element={<InstructorDetail />} />
             <Route path="master/rooms" element={<ManageRooms />} />
             <Route path="academic/batches" element={<ManageBatches />} />
             <Route path="academic/sessions" element={<ManageSessions />} />
@@ -112,7 +113,6 @@ function App() {
           
           {/* Instructor Routes */}
           <Route path="instructor" element={<InstructorDashboard />} />
-          <Route path="instructor/attendance" element={<ManageAttendance />} />
           <Route path="instructor/materials" element={<ManageMaterials />} />
           <Route path="instructor/bap" element={<InstructorBAP />} />
           <Route path="instructor/profile" element={<InstructorProfile />} />

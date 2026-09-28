@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../../lib/api';
-
+import { formatDate } from '../../../utils/formatters';
 const ManageBAP = () => {
   const [bapList, setBapList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -156,7 +156,7 @@ const ManageBAP = () => {
                 return (
                   <tr key={item.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontWeight: 700 }}>{item.teaching_date}</div>
+                      <div style={{ fontWeight: 700 }}>{formatDate(item.teaching_date)}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {item.submitted_at ? `Submit: ${new Date(item.submitted_at).toLocaleDateString('id-ID')}` : 'Belum disubmit'}
                       </div>
@@ -274,7 +274,7 @@ const ManageBAP = () => {
                     <td style={{ padding: '4px 0' }}>{selectedBap.program_name}</td>
                     <td style={{ width: '130px', padding: '4px 0', fontWeight: 600 }}>Tanggal Kelas</td>
                     <td style={{ width: '12px' }}>:</td>
-                    <td style={{ padding: '4px 0' }}>{selectedBap.teaching_date}</td>
+                    <td style={{ padding: '4px 0' }}>{formatDate(selectedBap.teaching_date)}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '4px 0', fontWeight: 600 }}>Batch / Angkatan</td>

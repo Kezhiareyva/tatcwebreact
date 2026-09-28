@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../../lib/api';
+import { Link } from 'react-router-dom';
 
 const ManageInstructors = () => {
   const [instructors, setInstructors] = useState([]);
@@ -143,6 +144,12 @@ const ManageInstructors = () => {
                     </span>
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    <Link
+                      to={`/admin/master/instructors/${m.id}`}
+                      style={{ background: 'transparent', border: 'none', color: '#8b5cf6', cursor: 'pointer', marginRight: '10px', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '500' }}
+                    >
+                      Detail
+                    </Link>
                     <button onClick={() => openModal(m)} style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', marginRight: '10px' }}>Edit</button>
                     <button onClick={() => handleDelete(m.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>Delete</button>
                   </td>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiFetch } from '../../lib/api';
+import { formatDate, formatTime } from '../../utils/formatters';
 
 const InstructorBAP = () => {
   const { user } = useAuth();
@@ -235,7 +236,7 @@ const InstructorBAP = () => {
                   <option value="">-- Pilih sesi kelas yang diajar --</option>
                   {eligibleSessions.map(s => (
                     <option key={s.id} value={s.id}>
-                      {s.session_date} | {s.batch_name} | {s.title} {s.topic_title ? `(Pertemuan ${s.topic_sequence}: ${s.topic_title})` : ''} {s.bap_status ? `[${s.bap_status}]` : ''}
+                      {formatDate(s.session_date)} | {s.batch_name} | {s.title} {s.topic_title ? `(Pertemuan ${s.topic_sequence}: ${s.topic_title})` : ''} {s.bap_status ? `[${s.bap_status}]` : ''}
                     </option>
                   ))}
                 </select>
@@ -272,7 +273,7 @@ const InstructorBAP = () => {
                     <div>
                       <strong>Pertemuan/Topik:</strong> {sessionDetail.topic_title ? `Pertemuan ${sessionDetail.topic_sequence} — ${sessionDetail.topic_title}` : 'Belum di-assign topik khusus'}
                     </div>
-                    <div><strong>Jadwal:</strong> {sessionDetail.session_date} ({sessionDetail.start_time} - {sessionDetail.end_time})</div>
+                    <div><strong>Jadwal:</strong> {formatDate(sessionDetail.session_date)} ({formatTime(sessionDetail.start_time)} - {formatTime(sessionDetail.end_time)})</div>
                   </div>
                 </div>
 
@@ -498,7 +499,7 @@ const InstructorBAP = () => {
                       style={{ padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--surface-hover)' }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.teaching_date}</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{formatDate(item.teaching_date)}</span>
                         <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '12px', background: badge.bg, color: badge.color }}>
                           {item.status}
                         </span>
@@ -591,7 +592,7 @@ const InstructorBAP = () => {
                     <td style={{ padding: '5px 0' }}>{selectedHistoryItem?.program_name || sessionDetail?.program_name || '-'}</td>
                     <td style={{ width: '140px', padding: '5px 0', fontWeight: 600 }}>Tanggal Kelas</td>
                     <td style={{ width: '15px' }}>:</td>
-                    <td style={{ padding: '5px 0' }}>{selectedHistoryItem?.teaching_date || sessionDetail?.session_date || '-'}</td>
+                    <td style={{ padding: '5px 0' }}>{formatDate(selectedHistoryItem?.teaching_date || sessionDetail?.session_date || '-')}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '5px 0', fontWeight: 600 }}>Batch / Angkatan</td>

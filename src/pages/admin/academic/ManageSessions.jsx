@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../../lib/api';
-
+import { formatDate, formatTime } from '../../../utils/formatters';
 const ManageSessions = () => {
   const [sessions, setSessions] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -142,8 +142,8 @@ const ManageSessions = () => {
               ) : sessions.map(m => (
                 <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <td style={{ padding: '1rem' }}>
-                    <div style={{ fontWeight: 'bold' }}>{m.session_date}</div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{m.start_time} - {m.end_time}</div>
+                    <div style={{ fontWeight: 'bold' }}>{formatDate(m.session_date)}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{formatTime(m.start_time)} - {formatTime(m.end_time)}</div>
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ fontWeight: 'bold' }}>{m.title}</div>

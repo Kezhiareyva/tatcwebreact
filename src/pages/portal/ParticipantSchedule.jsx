@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
+import { formatDate, formatTime } from '../../utils/formatters';
 
 const ParticipantSchedule = () => {
   const { user } = useAuth();
@@ -204,13 +205,7 @@ const ParticipantSchedule = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {filteredSessions.map((s, idx) => {
             const isToday = s.session_date === todayStr;
-            const dateObj = new Date(s.session_date);
-            const dateFormatted = dateObj.toLocaleDateString('id-ID', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            });
+            const dateFormatted = formatDate(s.session_date);
 
             return (
               <div key={s.id || idx} style={{
@@ -279,7 +274,7 @@ const ParticipantSchedule = () => {
                     {dateFormatted}
                   </div>
                   <div style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-main)' }}>
-                    {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)} WIB
+                    {formatTime(s.start_time)} - {formatTime(s.end_time)} WIB
                   </div>
                   <div style={{ marginTop: '0.5rem' }}>
                     <span style={{

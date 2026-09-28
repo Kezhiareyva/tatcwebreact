@@ -48,8 +48,14 @@ const InstructorProfile = () => {
 
         const jsonP = await resP.json();
         if (jsonP.success) {
-          setProfile(jsonP.data);
-          setForm(jsonP.data);
+          const loadedProfile = { ...jsonP.data };
+          try {
+            loadedProfile.availability = loadedProfile.availability_json ? JSON.parse(loadedProfile.availability_json) : [];
+          } catch {
+            loadedProfile.availability = [];
+          }
+          setProfile(loadedProfile);
+          setForm(loadedProfile);
         }
 
         if (resDash) {
@@ -74,12 +80,22 @@ const InstructorProfile = () => {
       const res  = await apiFetch('/api/portal/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: form.full_name || '', phone: form.phone || '' }),
+        body: JSON.stringify({ 
+          full_name: form.full_name || '', 
+          phone: form.phone || '',
+          availability_json: JSON.stringify(form.availability || [])
+        }),
       });
       const json = await res.json();
       if (json.success) {
-        setProfile(json.data);
-        setForm(json.data);
+        const updatedProfile = { ...json.data };
+        try {
+          updatedProfile.availability = updatedProfile.availability_json ? JSON.parse(updatedProfile.availability_json) : [];
+        } catch {
+          updatedProfile.availability = [];
+        }
+        setProfile(updatedProfile);
+        setForm(updatedProfile);
         setEditing(false);
         setMessage({ text: 'Profil berhasil disimpan.', ok: true });
         await refreshSession();
@@ -180,6 +196,48 @@ const InstructorProfile = () => {
               ))}
             </div>
 
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Jadwal Ketersediaan (Preferensi)</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(day => {
+                  const existing = (form.availability || []).find(a => a.day === day);
+                  return (
+                    <div key={day} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--background-color)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
+                      <label style={{ width: '100px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!existing}
+                          onChange={(e) => {
+                            let newAvail = [...(form.availability || [])];
+                            if (e.target.checked) {
+                              newAvail.push({ day, start: '08:00', end: '17:00' });
+                            } else {
+                              newAvail = newAvail.filter(a => a.day !== day);
+                            }
+                            setForm({ ...form, availability: newAvail });
+                          }}
+                        />
+                        {day}
+                      </label>
+                      {existing && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                          <input type="time" value={existing.start} onChange={(e) => {
+                            const newAvail = (form.availability || []).map(a => a.day === day ? { ...a, start: e.target.value } : a);
+                            setForm({ ...form, availability: newAvail });
+                          }} style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }} />
+                          <span>-</span>
+                          <input type="time" value={existing.end} onChange={(e) => {
+                            const newAvail = (form.availability || []).map(a => a.day === day ? { ...a, end: e.target.value } : a);
+                            setForm({ ...form, availability: newAvail });
+                          }} style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', color: 'var(--text-main)' }} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => { setEditing(false); setForm(profile); setMessage({ text: '', ok: true }); }}
                 style={{ padding: '8px 18px', borderRadius: '7px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.875rem' }}>
@@ -192,12 +250,28 @@ const InstructorProfile = () => {
             </div>
           </form>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
-            <Field label="Nama Lengkap"  value={profile.full_name} />
-            <Field label="Email"         value={profile.email} />
-            <Field label="Nomor Telepon" value={profile.phone} />
-            <Field label="Status"        value={profile.status} />
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+              <Field label="Nama Lengkap"  value={profile.full_name} />
+              <Field label="Email"         value={profile.email} />
+              <Field label="Nomor Telepon" value={profile.phone} />
+              <Field label="Status"        value={profile.status} />
+            </div>
+          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
+            <h3 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '1rem' }}>Preferensi Jadwal Ketersediaan</h3>
+            {profile.availability && profile.availability.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                {profile.availability.map((a, i) => (
+                  <div key={i} style={{ padding: '6px 12px', background: 'var(--surface-hover)', border: '1px solid var(--border-color)', borderRadius: '20px', fontSize: '0.85rem' }}>
+                    <strong>{a.day}</strong>: {a.start} - {a.end}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Belum ada preferensi jadwal yang diatur.</p>
+            )}
           </div>
+        </>
         )}
       </Section>
 

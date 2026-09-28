@@ -53,7 +53,7 @@ async function profileFor(user) {
     return rows[0] || null;
   }
   if (normalizeRole(user.role) === 'INSTRUKTUR') {
-    const [rows] = await pool.query('SELECT id, full_name, phone, status FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1', [user.email]);
+    let rows = []; try { [rows] = await pool.query('SELECT id, full_name, phone, status, availability_json FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1', [user.email]); } catch { [rows] = await pool.query('SELECT id, full_name, phone, status FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1', [user.email]); }
     return rows[0] || null;
   }
   return null;
@@ -1002,6 +1002,35 @@ export async function GET(request, context) {
     }
 
     // ── module_topics: GET list atau single ──────────────────────────────────
+    
+    if (route.match(/^admin\/instructors\/\d+$/)) {
+      await requireAuth(ADMIN_ROLES);
+      const instructorId = Number(route.split('/')[2]);
+      const pool = connection();
+      let profileRows = [];
+      try {
+        [profileRows] = await pool.query('SELECT * FROM instructors WHERE id = ? AND deleted_at IS NULL LIMIT 1', [instructorId]);
+      } catch (e) {
+        return fail('Gagal memuat profil instruktur.', 500);
+      }
+      if (!profileRows[0]) return fail('Instruktur tidak ditemukan.', 404);
+
+      const [sessions] = await pool.query(
+        `SELECT s.id, s.title, s.session_date, s.start_time, s.end_time, s.status, b.name as batch_name
+         FROM sessions s
+         JOIN session_instructors si ON si.session_id = s.id
+         JOIN batches b ON b.id = s.batch_id
+         WHERE si.instructor_id = ? AND s.deleted_at IS NULL
+         ORDER BY s.session_date DESC LIMIT 20`,
+        [instructorId]
+      ).catch(() => [[]]);
+
+      return ok({
+        profile: profileRows[0],
+        sessions
+      });
+    }
+
     if (route === 'module_topics') {
       await requireAuth(ADMIN_ROLES);
       const pool = connection();
@@ -1026,6 +1055,7 @@ export async function GET(request, context) {
     if (route === 'bap') {
       await requireAuth(ADMIN_ROLES);
       const pool = connection();
+      const id = params.get('id');
       if (id) {
         const [rows] = await pool.query(
           `SELECT b.*,
@@ -1288,6 +1318,8 @@ export async function POST(request, context) {
 
     // ── BAP POST (instruktur — buat / update draft + submit) ────────────────
     if (route === 'portal/instructor/bap') {
+      const session = await getSession();
+      if (!session) return fail('Unauthorized', 401);
       if (normalizeRole(session.role) !== 'INSTRUKTUR') return fail('Akses ditolak.', 403);
       const user = await findUserByEmail(session.email);
       const profile = user ? await profileFor(user) : null;
@@ -1469,7 +1501,7 @@ export async function PUT(request, context) {
       }
 
       if (role === 'INSTRUKTUR') {
-        const allowed = new Set(['full_name', 'phone']);
+        const allowed = new Set(['full_name', 'phone', 'availability_json']);
         const clean = {};
         for (const [k, v] of Object.entries(data)) {
           if (allowed.has(k)) clean[k] = v === '' ? null : v;
