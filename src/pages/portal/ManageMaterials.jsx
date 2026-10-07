@@ -125,11 +125,11 @@ const ManageMaterials = () => {
         <select
           value={selectedSessionId}
           onChange={e => setSelectedSessionId(e.target.value)}
-          style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-color)', color: 'var(--text-main)' }}
+          style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', colorScheme: 'light dark' }}
         >
-          <option value="">-- Select a Session --</option>
+          <option value="" style={{ background: 'var(--background-main)', color: 'var(--text-main)' }}>-- Select a Session --</option>
           {sessions.map(s => (
-            <option key={s.id} value={s.id}>
+            <option key={s.id} value={s.id} style={{ background: 'var(--background-main)', color: 'var(--text-main)' }}>
               {formatDate(s.session_date)} | {formatTime(s.start_time)}-{formatTime(s.end_time)} | {s.title} ({s.batch_name})
             </option>
           ))}

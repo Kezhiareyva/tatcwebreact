@@ -215,3 +215,12 @@ select.form-control { cursor:pointer; }
 .access-denied-card h1 { margin:.4rem 0; font-size:1.6rem; }
 .access-denied-card p { color:var(--text-muted); margin-bottom:1.2rem; }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+
+
+/* Fix: select text visibility in dark mode */
+.dark select,
+.dark select option {
+  color-scheme: dark;
+  background-color: var(--surface-color);
+  color: var(--text-main);
+}
