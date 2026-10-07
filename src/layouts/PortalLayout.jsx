@@ -41,7 +41,7 @@ const PortalLayout = () => {
           </div>
         </div>
         
-        <nav style={{ flex: 1, padding: '1rem 0', display: 'flex', flexDirection: 'column' }}>
+        <nav style={{ padding: '1rem 0', display: 'flex', flexDirection: 'column' }}>
           {menuItems.map(item => (
             <Link 
               key={item.path} 
@@ -66,7 +66,7 @@ const PortalLayout = () => {
             onClick={async () => { await logout(); navigate('/login'); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.75rem 1.5rem', marginTop: 'auto',
+              padding: '0.75rem 1.5rem',
               background: 'transparent', border: 'none', borderTop: '1px solid var(--border-color)',
               color: '#ef4444', cursor: 'pointer', fontWeight: '500', fontSize: '1rem',
               width: '100%', textAlign: 'left',
