@@ -231,11 +231,11 @@ const InstructorBAP = () => {
                 <select
                   value={selectedSessionId}
                   onChange={(e) => handleSelectSession(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-color)', color: 'var(--text-main)', fontSize: '0.95rem' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', fontSize: '0.95rem', colorScheme: 'light dark' }}
                 >
-                  <option value="">-- Pilih sesi kelas yang diajar --</option>
+                  <option value="" style={{ background: 'var(--background-main)', color: 'var(--text-main)' }}>-- Pilih sesi kelas yang diajar --</option>
                   {eligibleSessions.map(s => (
-                    <option key={s.id} value={s.id}>
+                    <option key={s.id} value={s.id} style={{ background: 'var(--background-main)', color: 'var(--text-main)' }}>
                       {formatDate(s.session_date)} | {s.batch_name} | {s.title} {s.topic_title ? `(Pertemuan ${s.topic_sequence}: ${s.topic_title})` : ''} {s.bap_status ? `[${s.bap_status}]` : ''}
                     </option>
                   ))}
@@ -303,7 +303,7 @@ const InstructorBAP = () => {
                     <select
                       value={formData.method}
                       onChange={e => setFormData(f => ({ ...f, method: e.target.value }))}
-                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--background-color)', color: 'var(--text-main)', fontSize: '0.9rem' }}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--background-main)', color: 'var(--text-main)', fontSize: '0.9rem', colorScheme: 'light dark' }}
                     >
                       <option value="ONSITE">Onsite (Tatap Muka)</option>
                       <option value="ONLINE">Online (Virtual Class / Zoom)</option>
