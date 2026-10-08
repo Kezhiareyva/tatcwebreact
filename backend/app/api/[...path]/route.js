@@ -606,7 +606,10 @@ async function portal(route, request, params) {
     }
     const [rows] = await pool.query(`SELECT s.*, b.name batch_name, m.name module_name, r.name room_name
       FROM sessions s JOIN batches b ON b.id=s.batch_id LEFT JOIN modules m ON m.id=s.module_id LEFT JOIN rooms r ON r.id=s.room_id
-      JOIN session_instructors si ON si.session_id=s.id WHERE si.instructor_id=? AND s.session_date >= CURDATE() ORDER BY s.session_date, s.start_time LIMIT 30`, [instructorId]).catch(() => [[]]);
+      JOIN session_instructors si ON si.session_id=s.id
+      WHERE si.instructor_id=?
+        AND s.session_date >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
+      ORDER BY s.session_date, s.start_time LIMIT 60`, [instructorId]).catch(() => [[]]);
     return ok({ upcoming_sessions: rows });
   }
   if (route === 'portal/student_dashboard') {

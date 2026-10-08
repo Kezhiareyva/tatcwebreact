@@ -5,6 +5,26 @@ const END_HOUR = 20; // 07:00 to 20:00
 const HOUR_WIDTH = 120; // pixels per hour
 const ROW_HEIGHT = 80;
 
+/**
+ * Normalize a session_date value (Date object or string) to "YYYY-MM-DD"
+ */
+function toDateString(val) {
+  if (!val) return '';
+  // If it's already a string in YYYY-MM-DD format
+  if (typeof val === 'string') {
+    // Handle ISO string like "2026-10-08T00:00:00.000Z"
+    return val.slice(0, 10);
+  }
+  // If it's a Date object
+  if (val instanceof Date) {
+    const y = val.getFullYear();
+    const m = String(val.getMonth() + 1).padStart(2, '0');
+    const d = String(val.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return String(val).slice(0, 10);
+}
+
 export default function WeeklySchedule({ sessions = [] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -76,7 +96,7 @@ export default function WeeklySchedule({ sessions = [] }) {
         <div style={{ display: 'flex', minWidth: `${calendarWidth + 140}px` }}>
           {/* Top-Left Empty Corner */}
           <div style={{ width: '140px', flexShrink: 0, borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', background: 'var(--background-color)', zIndex: 2, position: 'sticky', left: 0 }}></div>
-          
+
           {/* Hour Headers (Columns) */}
           <div style={{ display: 'flex', width: `${calendarWidth}px`, borderBottom: '1px solid var(--border-color)', background: 'var(--background-color)' }}>
             {Array.from({ length: totalHours }).map((_, i) => (
@@ -97,26 +117,28 @@ export default function WeeklySchedule({ sessions = [] }) {
           </div>
 
           {weekDays.map((day, rowIdx) => {
+            // Build YYYY-MM-DD from local date (not UTC) to avoid timezone shift
             const year = day.getFullYear();
             const month = String(day.getMonth() + 1).padStart(2, '0');
             const dt = String(day.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${dt}`;
-            
-            const daySessions = sessions.filter(s => s.session_date === dateStr);
+
+            // Normalize each session's date for comparison
+            const daySessions = sessions.filter(s => toDateString(s.session_date) === dateStr);
             const todayFlag = isToday(day);
 
             return (
               <div key={rowIdx} style={{ display: 'flex', width: '100%', height: `${ROW_HEIGHT}px`, borderBottom: rowIdx === 6 ? 'none' : '1px solid var(--border-color)', background: todayFlag ? 'rgba(59, 130, 246, 0.03)' : 'transparent', position: 'relative' }}>
-                
+
                 {/* Day Header (Y-axis sticky) */}
-                <div style={{ 
-                  width: '140px', 
-                  flexShrink: 0, 
-                  borderRight: '1px solid var(--border-color)', 
-                  background: todayFlag ? 'rgba(59, 130, 246, 0.08)' : 'var(--surface-color)', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  justifyContent: 'center', 
+                <div style={{
+                  width: '140px',
+                  flexShrink: 0,
+                  borderRight: '1px solid var(--border-color)',
+                  background: todayFlag ? 'rgba(59, 130, 246, 0.08)' : 'var(--surface-color)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
                   alignItems: 'center',
                   position: 'sticky',
                   left: 0,
@@ -136,7 +158,7 @@ export default function WeeklySchedule({ sessions = [] }) {
                   {daySessions.map((s) => {
                     const startH = parseTime(s.start_time);
                     const endH = parseTime(s.end_time);
-                    
+
                     const safeStart = Math.max(START_HOUR, startH);
                     const safeEnd = Math.min(END_HOUR + 1, endH);
                     if (safeStart >= safeEnd) return null;
@@ -145,30 +167,36 @@ export default function WeeklySchedule({ sessions = [] }) {
                     const width = (safeEnd - safeStart) * HOUR_WIDTH;
 
                     return (
-                      <div key={s.id} style={{
+                      <div key={s.id} title={`${s.title}${s.batch_name ? ` (${s.batch_name})` : ''}\n${s.start_time?.slice(0,5)} - ${s.end_time?.slice(0,5)}`} style={{
                         position: 'absolute',
-                        left: `${left}px`,
-                        width: `${width - 4}px`, // subtract a small gap
-                        top: '10px',
-                        bottom: '10px',
+                        left: `${left + 2}px`,
+                        width: `${width - 6}px`,
+                        top: '8px',
+                        bottom: '8px',
                         background: 'var(--primary-color)',
-                        borderRadius: '8px',
-                        padding: '6px 8px',
+                        borderRadius: '6px',
+                        padding: '5px 8px',
                         color: '#fff',
-                        fontSize: '0.75rem',
+                        fontSize: '0.72rem',
                         overflow: 'hidden',
-                        boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)',
-                        borderLeft: '4px solid #1d4ed8',
+                        boxShadow: '0 2px 6px rgba(59, 130, 246, 0.35)',
+                        borderLeft: '3px solid rgba(255,255,255,0.4)',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        cursor: 'default',
                       }}>
-                        <div style={{ fontWeight: 700, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {s.start_time?.slice(0,5)} - {s.end_time?.slice(0,5)}
+                        <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '1px' }}>
+                          {s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}
                         </div>
-                        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.9 }}>
-                          {s.title} {s.batch_name ? `(${s.batch_name})` : ''}
+                        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.92 }}>
+                          {s.title}
                         </div>
+                        {s.batch_name && (
+                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.75, fontSize: '0.68rem' }}>
+                            {s.batch_name}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
