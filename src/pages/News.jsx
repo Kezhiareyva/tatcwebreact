@@ -102,7 +102,20 @@ function News() {
                 <div style={{ color: 'var(--primary-color)', fontSize: '0.95rem', marginBottom: '2.5rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {new Date(singleNews.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
-                <div style={{ color: 'var(--text-main)', lineHeight: 1.8, fontSize: '1.1rem', opacity: 0.9 }} dangerouslySetInnerHTML={{ __html: singleNews.content }}></div>
+                <div style={{ color: 'var(--text-main)', lineHeight: 1.8, fontSize: '1.1rem', opacity: 0.9 }}>
+                  {(singleNews.content || '')
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<\/p>/gi, '\n')
+                    .replace(/<[^>]+>/g, '')
+                    .split('\n')
+                    .map((line, i) => (
+                      <React.Fragment key={i}>
+                        {line}
+                        <br />
+                      </React.Fragment>
+                    ))
+                  }
+                </div>
               </div>
             </article>
           ) : (

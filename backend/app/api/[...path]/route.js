@@ -465,6 +465,48 @@ async function forgotPassword(request) {
     const pool = connection();
     if (cols.has('reset_token')) await pool.query('UPDATE users SET reset_token=? WHERE id=?', [token, user.id]);
     if (cols.has('reset_token_expires_at')) await pool.query('UPDATE users SET reset_token_expires_at=DATE_ADD(NOW(), INTERVAL 30 MINUTE) WHERE id=?', [user.id]);
+
+    // Kirim email berisi link reset password
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        secure: Number(process.env.SMTP_PORT) === 465,
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      const frontendUrl = process.env.FRONTEND_URL;
+      const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+      const mailPromise = transporter.sendMail({
+        from: process.env.SMTP_FROM,
+        to: email,
+        subject: 'Reset Kata Sandi Anda - TATC',
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+            <h2 style="color: #dc2626;">Reset Kata Sandi</h2>
+            <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun TATC Anda. Klik tombol di bawah ini untuk melanjutkan:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" style="background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Kata Sandi Saya</a>
+            </div>
+            <p style="color: #666; font-size: 0.9em;">Tautan ini akan kedaluwarsa dalam <strong>30 menit</strong>.</p>
+            <p style="color: #666; font-size: 0.9em;">Jika tombol tidak berfungsi, salin tautan berikut ke browser Anda: <br/> <a href="${resetUrl}">${resetUrl}</a></p>
+            <p style="color: #999; font-size: 0.85em; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">Jika Anda tidak merasa meminta reset kata sandi, abaikan email ini. Kata sandi Anda tidak akan berubah.</p>
+            <p style="color: #999; font-size: 0.8em; margin-top: 10px;">TATC Web App - Mohon jangan balas email ini.</p>
+          </div>
+        `
+      });
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout pengiriman email (5s)')), 5000));
+      await Promise.race([mailPromise, timeoutPromise]);
+    } catch (emailErr) {
+      console.error("Gagal mengirim email reset password:", emailErr);
+    }
   }
   return ok(null, 'Jika email terdaftar, instruksi reset akan dikirim ke email tersebut.');
 }

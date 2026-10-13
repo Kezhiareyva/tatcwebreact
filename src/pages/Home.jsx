@@ -294,7 +294,14 @@ function Home() {
               </div>
               <div style={{ color: 'var(--text-main)', fontSize: '1rem', lineHeight: '1.6' }}>
                 {selectedProgram.requirements ? (
-                  <div dangerouslySetInnerHTML={{ __html: selectedProgram.requirements.replace(/\n/g, '<br/>') }} />
+                  <div>
+                    {selectedProgram.requirements.split('\n').map((line, i) => (
+                      <React.Fragment key={i}>
+                        {line}
+                        {i < selectedProgram.requirements.split('\n').length - 1 && <br />}
+                      </React.Fragment>
+                    ))}
+                  </div>
                 ) : (
                   <ul style={{ paddingLeft: '1.5rem', margin: 0, color: 'var(--text-muted)' }}>
                     <li style={{ marginBottom: '0.5rem' }}>Warga Negara Indonesia (WNI)</li>
