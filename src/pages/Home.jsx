@@ -88,9 +88,9 @@ function Home() {
       <main>
         {/* Hero Section */}
         <div className="hero-section" style={banners.length > 0 ? { backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.9)), url('${banners[0].image_url}')` } : {}}>
-          <div style={{ maxWidth: '1000px', padding: '0 2rem' }}>
+          <div style={{ maxWidth: '1200px', padding: '0 2rem' }}>
             <h1 className="hero-title animate-fade-in-up delay-100">
-              {banners.length > 0 ? banners[0].title.split('\\n').map((line, i) => <React.Fragment key={i}>{line}<br /></React.Fragment>) : <>Telkom University<br />Aviation Training Center</>}
+              {banners.length > 0 ? banners[0].title.split('\\n').map((line, i, arr) => <React.Fragment key={i}>{line}{i < arr.length - 1 && <br />}</React.Fragment>) : 'Telkom University Aviation Training Center'}
             </h1>
 
             <p className="hero-subtitle animate-fade-in-up delay-200">
