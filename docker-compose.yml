@@ -1,16 +1,22 @@
 version: '3.8'
 
 services:
+  # phpMyAdmin TIDAK ikut jalan secara default (opt-in lewat profile "tools").
+  # Jalankan hanya saat dibutuhkan:  docker compose --profile tools up -d phpmyadmin
+  # Matikan lagi setelah selesai:     docker compose stop phpmyadmin
+  # Port hanya di-bind ke 127.0.0.1 -> akses dari laptop via SSH tunnel (lihat DEPLOYMENT.md):
+  #   ssh -L <PMA_PORT2>:127.0.0.1:<PMA_PORT2> user@server   lalu buka http://localhost:<PMA_PORT2>
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: tatc_phpmyadmin
-    restart: unless-stopped
+    restart: "no"
+    profiles: ["tools"]
     environment:
       PMA_HOST: ${PMA_HOST}
       PMA_PORT: ${PMA_PORT1}
       UPLOAD_LIMIT: ${PMA_UPLOAD_LIMIT}
     ports:
-      - "${PMA_BIND_IP}:${PMA_PORT2}:${PMA_PORT3}"
+      - "127.0.0.1:${PMA_PORT2:?PMA_PORT2 wajib diisi di .env}:${PMA_PORT3:?PMA_PORT3 wajib diisi di .env}"
     networks:
       - app-network
     depends_on:
@@ -28,8 +34,10 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
     volumes:
       - mysql_data:/var/lib/mysql
-    ports:
-      - "${DB_BIND_IP}:${DB_PORT}:${DB_PORT}"
+    # Sengaja TIDAK ada blok "ports": MySQL hanya bisa diakses dari container lain
+    # di app-network (backend -> host "mysql"). Docker mem-bypass UFW, jadi port
+    # yang di-publish akan tetap terbuka ke internet walau firewall menutupnya.
+    # Untuk backup/restore gunakan:  docker exec tatc_mysql mysqldump ...
     networks:
       - app-network
 
@@ -49,7 +57,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASS}
       - SESSION_SECRET=${SESSION_SECRET}
-      - PORT=${BACKEND_PORT2}
+      - PORT=${BACKEND_PORT2:?BACKEND_PORT2 wajib diisi di .env}
       - FRONTEND_URL=${FRONTEND_URL}
       - CORS_ORIGIN=${CORS_ORIGIN}
       - SMTP_HOST=${SMTP_HOST}
@@ -57,8 +65,11 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
+    # Di-bind ke 127.0.0.1: hanya bisa dijangkau reverse proxy (Caddy) di host yang sama,
+    # tidak bisa diakses langsung dari internet (mencegah bypass HTTPS & spoof X-Forwarded-For).
+    # Sengaja di-hardcode (bukan ${BACKEND_BIND_IP}) agar tidak bisa terbuka karena salah isi .env.
     ports:
-      - "${BACKEND_BIND_IP}:${BACKEND_PORT1}:${BACKEND_PORT2}"
+      - "127.0.0.1:${BACKEND_PORT1:?BACKEND_PORT1 wajib diisi di .env}:${BACKEND_PORT2}"
     volumes:
       - tatc_uploads:/app/public/uploads
       - tatc_documents:/app/public/documents
@@ -74,8 +85,11 @@ services:
       dockerfile: Dockerfile
     container_name: tatc_frontend
     restart: unless-stopped
+    environment:
+      - PORT=${FRONTEND_PORT2:?FRONTEND_PORT2 wajib diisi di .env}
+    # Di-bind ke 127.0.0.1: hanya Caddy di host yang bisa menjangkau (lihat DEPLOYMENT.md).
     ports:
-      - "${FRONTEND_BIND_IP}:${FRONTEND_PORT1}:${FRONTEND_PORT2}"
+      - "127.0.0.1:${FRONTEND_PORT1:?FRONTEND_PORT1 wajib diisi di .env}:${FRONTEND_PORT2}"
     depends_on:
       - backend
     networks:

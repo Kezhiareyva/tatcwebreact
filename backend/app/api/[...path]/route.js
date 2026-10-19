@@ -897,10 +897,18 @@ async function portal(route, request, params) {
       return rows[0] ? ok(rows[0]) : fail('Profil peserta tidak ditemukan.', 404);
     }
     if (role === 'INSTRUKTUR') {
-      const [rows] = await pool.query(
-        'SELECT id, full_name, email, phone, status FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1',
-        [session.email]
-      );
+      let rows;
+      try {
+        [rows] = await pool.query(
+          'SELECT id, full_name, email, phone, status, availability_json FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+          [session.email]
+        );
+      } catch {
+        [rows] = await pool.query(
+          'SELECT id, full_name, email, phone, status FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+          [session.email]
+        );
+      }
       return rows[0] ? ok(rows[0]) : fail('Profil instruktur tidak ditemukan.', 404);
     }
     return fail('Endpoint ini hanya untuk peserta dan instruktur.', 403);
@@ -1551,18 +1559,29 @@ export async function PUT(request, context) {
         for (const [k, v] of Object.entries(data)) {
           if (allowed.has(k)) clean[k] = v === '' ? null : v;
         }
-        if (!Object.keys(clean).length) return fail('Tidak ada field yang dapat diperbarui.', 422);
+        // If columns don't exist yet, silently drop them to avoid MySQL error
+        const cols = await tableColumns('instructors');
+        const safeClean = Object.fromEntries(Object.entries(clean).filter(([k]) => cols.has(k)));
+        if (!Object.keys(safeClean).length) return fail('Tidak ada field yang dapat diperbarui.', 422);
         const [existing] = await pool.query('SELECT id FROM instructors WHERE email = ? AND deleted_at IS NULL LIMIT 1', [session.email]);
         if (!existing[0]) return fail('Profil instruktur tidak ditemukan.', 404);
-        const keys = Object.keys(clean);
+        const keys = Object.keys(safeClean);
         await pool.query(
           `UPDATE instructors SET ${keys.map(k => `\`${k}\`=?`).join(', ')} WHERE id=?`,
-          [...keys.map(k => clean[k]), existing[0].id]
+          [...keys.map(k => safeClean[k]), existing[0].id]
         );
-        const [updated] = await pool.query(
-          'SELECT id, full_name, email, phone, status FROM instructors WHERE id=? LIMIT 1',
-          [existing[0].id]
-        );
+        let updated;
+        try {
+          [updated] = await pool.query(
+            'SELECT id, full_name, email, phone, status, availability_json FROM instructors WHERE id=? LIMIT 1',
+            [existing[0].id]
+          );
+        } catch {
+          [updated] = await pool.query(
+            'SELECT id, full_name, email, phone, status FROM instructors WHERE id=? LIMIT 1',
+            [existing[0].id]
+          );
+        }
         return ok(updated[0], 'Profil berhasil diperbarui.');
       }
 

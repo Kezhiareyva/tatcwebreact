@@ -41,11 +41,36 @@ Aplikasi ini terdiri dari 4 services:
    - **Backend API:** [http://localhost:3001/api](http://localhost:3001/api)
    - **phpMyAdmin:** [http://localhost:5050](http://localhost:5050) *(User: `root` / `tatc_user`, Pass: `rootpassword` / `tatc_password`)*
 
-> **Note**: Jika menggunakan Nginx Proxy Manager untuk production dengan domain dan SSL, lihat [NGINX_PROXY_MANAGER.md](file:///c:/xampp/htdocs/TATC_Web_React/NGINX_PROXY_MANAGER.md).
+> **Note**: Untuk deployment production (Caddy reverse proxy, domain, SSL, aturan port, backup), lihat [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 
 ### Cara 2: Menjalankan Langsung di Host (Local Development)
+
+#### Laragon dan XAMPP dalam satu kodebase
+
+Tidak perlu mengubah URL atau konfigurasi database di source code saat berpindah
+antara Laragon dan XAMPP. Konfigurasi lokal disimpan di file yang tidak masuk Git.
+Untuk developer baru yang belum memiliki file `.env`, buat dari template:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
+```
+
+Jangan menyalin template di atas ke file `.env` yang sudah ada karena itu akan
+menimpa konfigurasi dan secret lokal. Keduanya menggunakan `127.0.0.1:3306`
+secara default, yang sesuai untuk setup
+standar Laragon maupun XAMPP. Jika MySQL salah satu anggota tim menggunakan port,
+nama database, user, atau password lain, hanya ia yang mengubah
+`backend/.env` miliknya (serta `DATABASE_URL` agar nilainya sama). File `.env`
+tidak dikomit, sehingga perubahan tersebut tidak memengaruhi anggota tim lain.
+
+Frontend selalu memanggil `/api` pada origin yang sama. Saat `npm run dev`, Vite
+meneruskan request itu ke `VITE_BACKEND_TARGET` (default `http://127.0.0.1:3001`).
+Jadi nilai tersebut adalah koneksi internal dev server, bukan URL yang perlu
+ditanam di kode. Isi `VITE_API_BASE_URL` hanya bila frontend dan API memang
+berada di origin publik yang berbeda.
 
 1. **Install seluruh dependencies (Root + Backend):**
    ```bash

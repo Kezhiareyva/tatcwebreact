@@ -18,8 +18,6 @@ RUN npx prisma generate
 ENV NODE_ENV=production
 RUN npm run build
 
-# Expose backend port
-EXPOSE 3001
-
+# Port diambil dari env PORT (diisi docker-compose dari BACKEND_PORT2 di .env).
 # Start production backend server
 CMD ["npm", "start"]
